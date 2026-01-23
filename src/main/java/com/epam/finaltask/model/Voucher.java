@@ -2,35 +2,55 @@ package com.epam.finaltask.model;
 
 import java.time.LocalDate;
 import java.util.UUID;
+import lombok.*;
+import jakarta.persistence.*;
 
-import jakarta.persistence.Entity;
 
 @Entity
+@Table(name = "vouchers")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Voucher {
 
+    @Id
+    @GeneratedValue
     private UUID id;
 
+    @Column(nullable = false)
     private String title;
 
+    @Column(nullable = false)
     private String description;
 
+    @Column(nullable = false)
     private Double price;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TourType tourType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TransferType transferType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private HotelType hotelType;
 
-    private VoucherStatus status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private VoucherStatus status = VoucherStatus.REGISTERED;
 
+    @Column(nullable = false)
     private LocalDate arrivalDate;
 
+    @Column(nullable = false)
     private LocalDate evictionDate;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private User user;
 
     private boolean isHot;
-
-
 }

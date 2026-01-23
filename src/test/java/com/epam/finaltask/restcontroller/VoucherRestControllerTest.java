@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.epam.finaltask.security.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
 @TestPropertySource(properties = "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect")
 public class VoucherRestControllerTest {
+
+    @MockBean
+    private JwtUtil jwtUtil;
 
     @MockBean
     private VoucherService voucherService;
