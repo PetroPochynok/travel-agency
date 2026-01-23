@@ -84,7 +84,7 @@ public class VoucherRestControllerTest {
         List<VoucherDTO> responseVoucherDTOList = objectMapper.convertValue(resultsNode, new TypeReference<List<VoucherDTO>>() {});
         assertEquals(voucherDTOList, responseVoucherDTOList);
     }
-    
+
     @Test
     @WithMockUser
     void findAllByUserId_Successfully() throws Exception {

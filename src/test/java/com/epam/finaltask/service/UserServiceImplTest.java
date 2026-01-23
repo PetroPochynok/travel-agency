@@ -57,7 +57,7 @@ public class UserServiceImplTest {
     // Then
     assertNotNull(result, "The returned UserDTO should not be null");
     assertEquals(expectedUserDTO.getUsername(), result.getUsername(),
-        "The username should match the expected value");
+            "The username should match the expected value");
 
     verify(userRepository, times(1)).findUserByUsername(username);
     verify(userMapper, times(1)).toUserDTO(any(User.class));
@@ -115,7 +115,7 @@ public class UserServiceImplTest {
     // Then
     assertNotNull(resultDTO, "The returned UserDTO should not be null");
     assertEquals(expectedUserDTO.getId(), resultDTO.getId(),
-        "The user ID should match the expected value");
+            "The user ID should match the expected value");
 
     verify(userRepository, times(1)).findById(id);
     verify(userMapper, times(1)).toUserDTO(any(User.class));
