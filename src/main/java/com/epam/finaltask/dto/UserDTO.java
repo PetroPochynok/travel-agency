@@ -1,5 +1,6 @@
 package com.epam.finaltask.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.epam.finaltask.model.Voucher;
@@ -31,7 +32,7 @@ public class UserDTO {
 
 	private String phoneNumber;
 
-	private Double balance;
+	private BigDecimal balance;
 
 	private boolean active;
 

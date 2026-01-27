@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
 				.ifPresent(existingUser::setPhoneNumber);
 
 		Optional.ofNullable(userDTO.getBalance())
-				.ifPresent(b -> existingUser.setBalance(BigDecimal.valueOf(b)));
+				.ifPresent(existingUser::setBalance);
 
 		User savedUser = userRepository.save(existingUser);
 

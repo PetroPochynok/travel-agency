@@ -15,9 +15,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/vouchers")
@@ -114,13 +118,13 @@ public class VoucherRestController {
 
     @GetMapping("/catalog")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<List<VoucherDTO>>> catalog() {
+    public ResponseEntity<Map<String, Object>> catalog(@AuthenticationPrincipal UserDetails userDetails) {
         List<VoucherDTO> vouchers = voucherService.findCatalog();
+        User user = userRepository.findUserByUsername(userDetails.getUsername()).orElseThrow();
 
-        ApiResponse<List<VoucherDTO>> response = new ApiResponse<>();
-        response.setResults(vouchers);
-        response.setStatusCode("OK");
-        response.setStatusMessage("Catalog vouchers retrieved successfully");
+        Map<String, Object> response = new HashMap<>();
+        response.put("vouchers", vouchers);
+        response.put("balance", user.getBalance());
 
         return ResponseEntity.ok(response);
     }
