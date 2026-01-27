@@ -21,4 +21,9 @@ public class PageController {
     public String catalogPage() {
         return "catalog";
     }
+
+    @GetMapping("/catalog/my")
+    public String myVouchersPage() {
+        return "my-vouchers";
+    }
 }
