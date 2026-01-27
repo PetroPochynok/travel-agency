@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #eef4fb;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .register-card {
+            background: #ffffff;
+            padding: 30px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .register-card h2 {
+            margin: 0 0 20px 0;
+            font-weight: 600;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            border-color: #2980b9;
+            box-shadow: 0 0 8px rgba(41, 128, 185, 0.3);
+            outline: none;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #2980b9;
+            border: none;
+            transition: all 0.3s ease;
+            color: #fff;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            background-color: #1c5980;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .register-footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .register-footer a {
+            color: #2980b9;
+            text-decoration: none;
+        }
+
+        .register-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="register-card">
+    <h2>Register</h2>
+
+    <div class="form-group">
+        <label>Username</label>
+        <input id="username" class="form-control" placeholder="Enter your username">
+        <span id="usernameError" class="error-message"></span>
+    </div>
+
+    <div class="form-group">
+        <label>First Name</label>
+        <input id="firstName" class="form-control" placeholder="Enter your first name">
+        <span id="firstNameError" class="error-message"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Last Name</label>
+        <input id="lastName" class="form-control" placeholder="Enter your last name">
+        <span id="lastNameError" class="error-message"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Email</label>
+        <input id="email" class="form-control" placeholder="Enter your email">
+        <span id="emailError" class="error-message"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Password</label>
+        <input id="password" type="password" class="form-control" placeholder="Enter your password">
+        <span id="passwordError" class="error-message"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Confirm Password</label>
+        <input id="confirmPassword" type="password" class="form-control" placeholder="Confirm your password">
+        <span id="confirmPasswordError" class="error-message"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Phone Number</label>
+        <input id="phoneNumber" class="form-control" placeholder="Enter your phone number">
+        <span id="phoneNumberError" class="error-message"></span>
+    </div>
+
+    <button class="btn-primary" onclick="register()">Register</button>
+
+    <div class="register-footer">
+        Already have an account? <a href="/login">Login here</a>
+    </div>
+</div>
+
+<script>
+    async function register() {
+
+        // Clear previous errors
+        document.querySelectorAll('.error-message').forEach(e => e.innerText = '');
+
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                username: document.getElementById('username').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                confirmPassword: document.getElementById('confirmPassword').value,
+                phoneNumber: document.getElementById('phoneNumber').value
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("Registration successful! Please login.");
+            window.location.href = '/login';
+            return;
+        }
+
+        if (typeof data === 'object' && !data.message) {
+            Object.keys(data).forEach(field => {
+                const errorSpan = document.getElementById(field + 'Error');
+                if (errorSpan) {
+                    errorSpan.innerText = data[field];
+                }
+            });
+        } else if (data.message) {
+            alert(data.message);
+        }
+    }
+</script>
+</body>
+</html>

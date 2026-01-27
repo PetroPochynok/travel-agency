@@ -1,5 +1,6 @@
 package com.epam.finaltask.dto;
 
+import com.epam.finaltask.model.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,15 +24,15 @@ public class VoucherDTO {
     private Double price;
 
     @NotNull(message = "Tour type is required")
-    private String tourType;
+    private TourType tourType;
 
     @NotNull(message = "Transfer type is required")
-    private String transferType;
+    private TransferType transferType;
 
     @NotNull(message = "Hotel type is required")
-    private String hotelType;
+    private HotelType hotelType;
 
-    private String status;
+    private VoucherStatus status;
 
     @NotNull
     private LocalDate arrivalDate;
@@ -44,3 +45,4 @@ public class VoucherDTO {
     private Boolean isHot;
 
 }
+

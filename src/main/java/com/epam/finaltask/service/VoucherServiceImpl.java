@@ -7,6 +7,10 @@ import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
 import com.epam.finaltask.repository.UserRepository;
 import com.epam.finaltask.repository.VoucherRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -32,8 +36,11 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public VoucherDTO create(VoucherDTO voucherDTO) {
         Voucher voucher = voucherMapper.toVoucher(voucherDTO);
-        Voucher saved = voucherRepository.save(voucher);
-        return voucherMapper.toVoucherDTO(saved);
+        if (voucher.getStatus() == null) {
+            voucher.setStatus(VoucherStatus.REGISTERED);
+        }
+        Voucher savedVoucher = voucherRepository.save(voucher);
+        return voucherMapper.toVoucherDTO(savedVoucher);
     }
 
     @Override
@@ -74,11 +81,11 @@ public class VoucherServiceImpl implements VoucherService {
         if (voucherDTO.getPrice() != null)
             existingVoucher.setPrice(voucherDTO.getPrice());
         if (voucherDTO.getTourType() != null)
-            existingVoucher.setTourType(TourType.valueOf(voucherDTO.getTourType()));
+            existingVoucher.setTourType(voucherDTO.getTourType());
         if (voucherDTO.getTransferType() != null)
-            existingVoucher.setTransferType(TransferType.valueOf(voucherDTO.getTransferType()));
+            existingVoucher.setTransferType(voucherDTO.getTransferType());
         if (voucherDTO.getHotelType() != null)
-            existingVoucher.setHotelType(HotelType.valueOf(voucherDTO.getHotelType()));
+            existingVoucher.setHotelType(voucherDTO.getHotelType());
         if (voucherDTO.getArrivalDate() != null)
             existingVoucher.setArrivalDate(voucherDTO.getArrivalDate());
         if (voucherDTO.getEvictionDate() != null)
@@ -97,48 +104,58 @@ public class VoucherServiceImpl implements VoucherService {
         Voucher voucher = voucherRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new VoucherNotFoundException("Voucher not found"));
 
-        voucher.setHot(voucherDTO.getIsHot());
+        voucher.setIsHot((voucherDTO.getIsHot()));
         return voucherMapper.toVoucherDTO(voucherRepository.save(voucher));
     }
 
+
     @Override
-    public List<VoucherDTO> findAllByUserId(String userId) {
-        return voucherRepository.findAllByUserId(UUID.fromString(userId))
+    public List<VoucherDTO> findAllByTourType(TourType tourType, int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<Voucher> vouchers = voucherRepository.findAllByTourType(tourType, pageable);
+        return vouchers.stream().map(voucherMapper::toVoucherDTO).toList();
+    }
+
+    @Override
+    public List<VoucherDTO> findAllByTransferType(TransferType transferType, int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<Voucher> vouchers = voucherRepository.findAllByTransferType(transferType, pageable);
+        return vouchers.stream().map(voucherMapper::toVoucherDTO).toList();
+    }
+
+    public List<VoucherDTO> findAllByPrice(Double price, int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<Voucher> vouchers = voucherRepository.findAllByPrice(price, pageable);
+        return vouchers.stream().map(voucherMapper::toVoucherDTO).toList();
+    }
+
+    @Override
+    public List<VoucherDTO> findAllByHotelType(HotelType hotelType, int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<Voucher> vouchers = voucherRepository.findAllByHotelType(hotelType, pageable);
+        return vouchers.stream().map(voucherMapper::toVoucherDTO).toList();
+    }
+
+    @Override
+    public List<VoucherDTO> findMyVouchers(String username) {
+        return voucherRepository.findAllByUser_Username(username)
+                .stream()
+                .map(voucherMapper::toVoucherDTO)
+                .toList();
+    }
+
+    public List<VoucherDTO> findCatalog(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
+        return voucherRepository
+                .findAllByStatusOrderByIsHotDesc(VoucherStatus.REGISTERED, pageable)
                 .stream()
                 .map(voucherMapper::toVoucherDTO)
                 .toList();
     }
 
     @Override
-    public List<VoucherDTO> findAllByTourType(TourType tourType) {
-        return voucherRepository.findAllByTourType(tourType)
-                .stream()
-                .map(voucherMapper::toVoucherDTO)
-                .toList();
-    }
-
-    @Override
-    public List<VoucherDTO> findAllByTransferType(String transferType) {
-        return voucherRepository.findAllByTransferType(TransferType.valueOf(transferType))
-                .stream()
-                .map(voucherMapper::toVoucherDTO)
-                .toList();
-    }
-
-    @Override
-    public List<VoucherDTO> findAllByPrice(Double price) {
-        return voucherRepository.findAllByPrice(price)
-                .stream()
-                .map(voucherMapper::toVoucherDTO)
-                .toList();
-    }
-
-    @Override
-    public List<VoucherDTO> findAllByHotelType(HotelType hotelType) {
-        return voucherRepository.findAllByHotelType(hotelType)
-                .stream()
-                .map(voucherMapper::toVoucherDTO)
-                .toList();
+    public List<VoucherDTO> findCatalog() {
+        return findCatalog(0, Integer.MAX_VALUE, "isHot");
     }
 
     @Override
@@ -148,4 +165,5 @@ public class VoucherServiceImpl implements VoucherService {
                 .map(voucherMapper::toVoucherDTO)
                 .toList();
     }
+
 }

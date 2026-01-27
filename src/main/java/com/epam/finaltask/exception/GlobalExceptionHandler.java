@@ -6,6 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
@@ -23,11 +24,18 @@ public class GlobalExceptionHandler {
                 .body(new ApiError(ex.getMessage(), LocalDateTime.now()));
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN) // 403
+                .body(new ApiError("Access Denied", LocalDateTime.now()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiError("Unexpected server error", LocalDateTime.now()));
+                .body(new ApiError(ex.getMessage(), LocalDateTime.now())); // show actual message
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

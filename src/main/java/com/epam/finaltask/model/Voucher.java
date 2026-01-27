@@ -2,6 +2,7 @@ package com.epam.finaltask.model;
 
 import java.time.LocalDate;
 import java.util.UUID;
+
 import lombok.*;
 import jakarta.persistence.*;
 
@@ -49,8 +50,8 @@ public class Voucher {
     private LocalDate evictionDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
-    private boolean isHot;
+    private Boolean isHot;
 }

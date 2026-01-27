@@ -2,40 +2,43 @@ package com.epam.finaltask.restcontroller;
 
 import com.epam.finaltask.dto.ApiResponse;
 import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.exception.UserNotFoundException;
+import com.epam.finaltask.model.HotelType;
+import com.epam.finaltask.model.TourType;
+import com.epam.finaltask.model.TransferType;
+import com.epam.finaltask.model.User;
+import com.epam.finaltask.repository.UserRepository;
 import com.epam.finaltask.service.VoucherService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/vouchers")
+@AllArgsConstructor
 public class VoucherRestController {
 
     private final VoucherService voucherService;
+    private final UserRepository userRepository;
 
-    public VoucherRestController(VoucherService voucherService) {
-        this.voucherService = voucherService;
-    }
-
-    @GetMapping
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<VoucherDTO>>> findAll() {
         List<VoucherDTO> vouchers = voucherService.findAll();
-        return ResponseEntity
-                .ok(new ApiResponse<>(vouchers));
+        ApiResponse<List<VoucherDTO>> response = new ApiResponse<>();
+        response.setResults(vouchers);
+        response.setStatusCode("OK");
+        response.setStatusMessage("All vouchers retrieved successfully");
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<ApiResponse<List<VoucherDTO>>> findAllByUserId(@PathVariable String userId) {
-        List<VoucherDTO> vouchers = voucherService.findAllByUserId(userId);
-        return ResponseEntity
-                .ok(new ApiResponse<>(vouchers));
-    }
-
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<VoucherDTO>> createVoucher(@Valid @RequestBody VoucherDTO voucherDTO) {
         VoucherDTO createdVoucher = voucherService.create(voucherDTO);
@@ -48,6 +51,23 @@ public class VoucherRestController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+    }
+
+    @PostMapping("/order/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<VoucherDTO>> orderVoucher(@PathVariable String id, Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        VoucherDTO ordered = voucherService.order(id, user.getId().toString());
+
+        ApiResponse<VoucherDTO> response = new ApiResponse<>();
+        response.setResults(ordered);
+        response.setStatusCode("OK");
+        response.setStatusMessage("Voucher successfully ordered");
+
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}")
@@ -92,4 +112,63 @@ public class VoucherRestController {
                 .ok(response);
     }
 
+    @GetMapping("/catalog")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<VoucherDTO>>> catalog() {
+        List<VoucherDTO> vouchers = voucherService.findCatalog();
+
+        ApiResponse<List<VoucherDTO>> response = new ApiResponse<>();
+        response.setResults(vouchers);
+        response.setStatusCode("OK");
+        response.setStatusMessage("Catalog vouchers retrieved successfully");
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<VoucherDTO>>> myVouchers(Authentication authentication) {
+        String username = authentication.getName();
+
+        List<VoucherDTO> vouchers = voucherService.findMyVouchers(username);
+
+        ApiResponse<List<VoucherDTO>> response = new ApiResponse<>();
+        response.setResults(vouchers);
+        response.setStatusCode("OK");
+        response.setStatusMessage("My vouchers retrieved successfully");
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<VoucherDTO>>> searchVouchers(
+            @RequestParam(required = false) TourType tourType,
+            @RequestParam(required = false) TransferType transferType,
+            @RequestParam(required = false) HotelType hotelType,
+            @RequestParam(required = false) Double price,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "price") String sortBy) {
+
+        List<VoucherDTO> vouchers;
+
+        if (tourType != null) {
+            vouchers = voucherService.findAllByTourType(tourType, page, size, sortBy);
+        } else if (transferType != null) {
+            vouchers = voucherService.findAllByTransferType(transferType, page, size, sortBy);
+        } else if (hotelType != null) {
+            vouchers = voucherService.findAllByHotelType(hotelType, page, size, sortBy);
+        } else if (price != null) {
+            vouchers = voucherService.findAllByPrice(price, page, size, sortBy);
+        } else {
+            vouchers = voucherService.findCatalog();
+        }
+
+        ApiResponse<List<VoucherDTO>> response = new ApiResponse<>();
+        response.setResults(vouchers);
+        response.setStatusCode("OK");
+        response.setStatusMessage("Filtered vouchers retrieved successfully");
+
+        return ResponseEntity.ok(response);
+    }
 }

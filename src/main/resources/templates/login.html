@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f4f7fa;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-card {
+            background: #ffffff;
+            padding: 30px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-card h2 {
+            margin: 0 0 20px 0;
+            font-weight: 600;
+            color: #2c3e50; /* dark gray for heading */
+            text-align: center;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            border-color: #27ae60; /* green focus */
+            box-shadow: 0 0 8px rgba(39, 174, 96, 0.3);
+            outline: none;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #27ae60; /* green */
+            border: none;
+            transition: all 0.3s ease;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #1e8449;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .login-footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .login-footer a {
+            color: #27ae60;
+            text-decoration: none;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        #error {
+            margin-top: 10px;
+            text-align: center;
+            color: #e74c3c;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<div class="login-card">
+    <h2>Login</h2>
+
+    <div class="form-group">
+        <label>Username</label>
+        <input id="username" class="form-control" placeholder="Enter your username">
+    </div>
+
+    <div class="form-group">
+        <label>Password</label>
+        <input id="password" type="password" class="form-control" placeholder="Enter your password">
+    </div>
+
+    <button class="btn-primary" onclick="login()">Login</button>
+
+    <p id="error"></p>
+
+    <div class="login-footer">
+        Don't have an account? <a href="/register">Register here</a>
+    </div>
+</div>
+
+<script>
+    async function login() {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('jwt', data.token);
+            window.location.href = '/catalog';
+        } else {
+            document.getElementById('error').innerText = 'Invalid credentials';
+        }
+    }
+</script>
+</body>
+</html>

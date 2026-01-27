@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Voucher Catalog</title>
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
+    <style>
+        .hot {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <h2>Voucher Catalog</h2>
+
+    <table class="table table-bordered mt-3">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Tour Type</th>
+            <th>Transfer</th>
+            <th>Hotel</th>
+            <th>Dates</th>
+            <th>Hot</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody id="voucherTableBody"></tbody>
+    </table>
+
+    <p id="error" class="text-danger mt-2"></p>
+</div>
+
+<script>
+    async function loadVouchers() {
+        const token = localStorage.getItem('jwt');
+
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/vouchers/catalog', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load catalog');
+            }
+
+            const data = await response.json();
+            const tbody = document.getElementById('voucherTableBody');
+            tbody.innerHTML = '';
+
+            // HOT vouchers first
+            const vouchers = data.results.sort((a, b) => b.hot - a.hot);
+
+            vouchers.forEach((voucher, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${voucher.title}</td>
+                        <td>${voucher.description}</td>
+                        <td>${voucher.price} $</td>
+                        <td>${voucher.tourType}</td>
+                        <td>${voucher.transferType}</td>
+                        <td>${voucher.hotelType}</td>
+                        <td>${voucher.arrivalDate} - ${voucher.evictionDate}</td>
+                        <td class="hot">${voucher.isHot ? '🔥 HOT' : ''}</td>
+                        <td>
+                            <button class="btn btn-success btn-sm"
+                                    onclick="orderVoucher('${voucher.id}')">
+                                Order
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+        } catch (err) {
+            document.getElementById('error').innerText = err.message;
+        }
+    }
+
+    async function orderVoucher(voucherId) {
+        const token = localStorage.getItem('jwt');
+
+        if (!token) {
+            alert('You are not authenticated');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/vouchers/order/${voucherId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Order failed');
+            }
+
+            alert('Voucher ordered successfully!');
+            loadVouchers(); // refresh catalog
+            const data = await response.json();
+
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    window.onload = loadVouchers;
+</script>
+
+</body>
+</html>
