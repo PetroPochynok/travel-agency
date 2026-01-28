@@ -1,152 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Voucher Catalog</title>
-
+    <title th:text="#{catalog.title}">Voucher Catalog</title>
     <link rel="stylesheet"
           href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 
     <style>
-        body {
-            background-color: #eef4fb;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        /* ===== Top bar ===== */
-        .top-bar {
-            background: #ffffff;
-            padding: 15px 30px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .top-bar h4 {
-            margin: 0;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        .top-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .user-name {
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .balance {
-            font-weight: 600;
-            color: #27ae60;
-        }
-
-        .btn-logout {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-logout:hover {
-            background-color: #c0392b;
-        }
-
-        .btn-my-vouchers {
-            background-color: #2980b9;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-my-vouchers:hover {
-            background-color: #1c5980;
-        }
-
-        /* ===== Catalog card ===== */
-        .catalog-card {
-            background: #ffffff;
-            margin-top: 30px;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-        }
-
-        .table th {
-            background-color: #f5f8fc;
-        }
-
-        .price {
-            font-weight: 600;
-            color: #2c3e50;
-            white-space: nowrap;
-        }
-
-        .hot-badge {
-            color: #e74c3c;
-            font-weight: 700;
-        }
-
-        .stars {
-            color: #f1c40f;
-            font-size: 1.1rem;
-            white-space: nowrap;
-        }
-
-        /* ===== Centered messages ===== */
-        #message-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        #message-box {
-            background: white;
-            padding: 30px 40px;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-            text-align: center;
-            max-width: 400px;
-            font-size: 1.1rem;
-        }
-
-        #message-box.success {
-            border-left: 6px solid #27ae60;
-        }
-
-        #message-box.error {
-            border-left: 6px solid #e74c3c;
-        }
-
-        #message-box button {
-            margin-top: 15px;
-            padding: 6px 14px;
-            border: none;
-            border-radius: 6px;
-            background-color: #2980b9;
-            color: white;
-            font-weight: 600;
-        }
-
-        #message-box button:hover {
-            background-color: #1c5980;
-        }
+        body { background-color: #eef4fb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .top-bar { background: #ffffff; padding: 15px 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
+        .top-bar h4 { margin: 0; color: #2c3e50; font-weight: 600; }
+        .top-right { display: flex; align-items: center; gap: 15px; }
+        .user-name { font-weight: 600; color: #2c3e50; }
+        .balance { font-weight: 600; color: #27ae60; }
+        .btn-logout { background-color: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        .btn-logout:hover { background-color: #c0392b; }
+        .btn-my-vouchers { background-color: #2980b9; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        .btn-my-vouchers:hover { background-color: #1c5980; }
+        .lang-switch { text-align: center; margin: 15px 0; }
+        .lang-switch a { margin: 0 5px; padding: 5px 10px; border-radius: 5px; background-color: #27ae60; color: white; font-weight: 600; text-decoration: none; font-size: 0.85rem; }
+        .lang-switch a:hover { background-color: #1e8449; }
+        .catalog-card { background: #ffffff; margin-top: 10px; padding: 25px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+        .table th { background-color: #f5f8fc; }
+        .price { font-weight: 600; color: #2c3e50; white-space: nowrap; }
+        .hot-badge { color: #e74c3c; font-weight: 700; }
+        .hot-cell { text-align: center; vertical-align: middle; }
+        .stars { color: #f1c40f; font-size: 1.1rem; white-space: nowrap; }
+        #message-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        #message-box { background: white; padding: 30px 40px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); text-align: center; max-width: 400px; font-size: 1.1rem; }
+        #message-box.success { border-left: 6px solid #27ae60; }
+        #message-box.error { border-left: 6px solid #e74c3c; }
+        #message-box button { margin-top: 15px; padding: 6px 14px; border: none; border-radius: 6px; background-color: #2980b9; color: white; font-weight: 600; cursor: pointer; }
+        #message-box button:hover { background-color: #1c5980; }
     </style>
 </head>
 <body>
@@ -154,37 +39,43 @@
 <!-- ===== Top bar ===== -->
 <div class="top-bar">
     <h4>🌍 Travel Agency</h4>
-
     <div class="top-right">
-        <div class="user-name" id="userName">User Name</div>
-        <div class="balance" id="balance">Balance: 0.00 $</div>
-        <button class="btn-my-vouchers" onclick="goMyVouchers()">My Vouchers</button>
-        <button class="btn-logout" onclick="logout()">Logout</button>
+        <div class="user-name" id="userName" th:text="#{catalog.userName}">User Name</div>
+        <div class="balance" id="balance" th:text="#{catalog.balance}">Balance: 0.00 $</div>
+        <button class="btn-my-vouchers" onclick="goMyVouchers()" th:text="#{catalog.myVouchers}">My Vouchers</button>
+        <button class="btn-logout" onclick="logout()" th:text="#{catalog.logout}">Logout</button>
     </div>
+</div>
+
+<!-- ===== Language switch ===== -->
+<div class="lang-switch">
+    <a th:href="@{/catalog(lang='en')}">EN</a>
+    <a th:href="@{/catalog(lang='uk')}">UA</a>
+    <a th:href="@{/catalog(lang='fr')}">FR</a>
+    <a th:href="@{/catalog(lang='de')}">DE</a>
+    <a th:href="@{/catalog(lang='es')}">ES</a>
 </div>
 
 <div class="container">
     <div class="catalog-card">
-        <h3 class="mb-4">Voucher Catalog</h3>
-
+        <h3 class="mb-4" th:text="#{catalog.title}">Voucher Catalog</h3>
         <table class="table table-bordered">
             <thead>
             <tr>
                 <th>#</th>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Price</th>
-                <th>Tour</th>
-                <th>Transfer</th>
-                <th>Hotel</th>
-                <th>Dates</th>
-                <th>Hot</th>
-                <th>Action</th>
+                <th th:text="#{catalog.titleCol}">Title</th>
+                <th th:text="#{catalog.description}">Description</th>
+                <th th:text="#{catalog.price}">Price</th>
+                <th th:text="#{catalog.tour}">Tour</th>
+                <th th:text="#{catalog.transfer}">Transfer</th>
+                <th th:text="#{catalog.hotel}">Hotel</th>
+                <th th:text="#{catalog.dates}">Dates</th>
+                <th th:text="#{catalog.hot}">HOT</th>
+                <th th:text="#{catalog.order}">Order</th>
             </tr>
             </thead>
             <tbody id="voucherTableBody"></tbody>
         </table>
-
         <p id="error" class="text-danger mt-2"></p>
     </div>
 </div>
@@ -197,143 +88,91 @@
     </div>
 </div>
 
-<script>
-    const overlay = document.getElementById('message-overlay');
-    const box = document.getElementById('message-box');
-    const text = document.getElementById('message-text');
-
-    function showMessage(msg, type = 'success') {
+<script th:inline="javascript">
+    function showMessage(msg, type='success') {
+        const overlay = document.getElementById('message-overlay');
+        const box = document.getElementById('message-box');
+        const text = document.getElementById('message-text');
         text.innerText = msg;
         box.className = type;
-        overlay.style.display = 'flex';
+        overlay.style.display='flex';
     }
 
-    function closeMessage() {
-        overlay.style.display = 'none';
-    }
+    function closeMessage() { document.getElementById('message-overlay').style.display='none'; }
 
-    function logout() {
+    async function logout() {
         localStorage.removeItem('jwt');
-        showMessage('You have been logged out', 'success');
-        setTimeout(() => { window.location.href = '/login'; }, 1000);
+        showMessage([[#{catalog.logoutSuccess}]], 'success');
+        setTimeout(()=>window.location.href='/login',1000);
     }
 
-    function goMyVouchers() {
-        window.location.href = '/catalog/my';
-    }
+    function goMyVouchers(){ window.location.href='/catalog/my'; }
 
     function renderStars(hotelType) {
-        const map = {
-            ONE_STAR: 1,
-            TWO_STARS: 2,
-            THREE_STARS: 3,
-            FOUR_STARS: 4,
-            FIVE_STARS: 5
-        };
-        return '⭐'.repeat(map[hotelType] || 0);
+        const map={ONE_STAR:1,TWO_STARS:2,THREE_STARS:3,FOUR_STARS:4,FIVE_STARS:5};
+        return '⭐'.repeat(map[hotelType]||0);
     }
 
     async function loadUserInfo() {
-        const token = localStorage.getItem('jwt');
-        if (!token) return;
-
+        const token = localStorage.getItem('jwt'); if(!token) return;
         try {
-            const response = await fetch('/api/users/me', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            if (!response.ok) return;
-
+            const response = await fetch('/api/users/me',{headers:{'Authorization':'Bearer '+token}});
+            if(!response.ok) return;
             const user = await response.json();
-            if (user && user.balance !== undefined) {
+            if(user && user.balance !== undefined){
                 document.getElementById('userName').innerText = `${user.firstName} ${user.lastName}`;
-                document.getElementById('balance').innerText = `Balance: ${user.balance} $`;
+                document.getElementById('balance').innerText = `${user.balance.toFixed(2)} $`;
             }
-        } catch (e) {
-            console.warn('Failed to load user info');
-        }
+        } catch(e){ console.warn('Failed to load user info'); }
     }
 
     async function loadVouchers() {
-        const token = localStorage.getItem('jwt');
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
-
+        const token = localStorage.getItem('jwt'); if(!token){window.location.href='/login'; return;}
         try {
-            const response = await fetch('/api/vouchers/catalog', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            if (!response.ok) throw new Error('Failed to load catalog');
-
+            const response = await fetch('/api/vouchers/catalog',{headers:{'Authorization':'Bearer '+token}});
+            if(!response.ok) throw new Error([[#{catalog.loadError}]]);
             const data = await response.json();
-            if (data.balance !== undefined) {
-                document.getElementById('balance').innerText = `Balance: ${data.balance} $`;
-            }
-
-            const vouchers = Array.isArray(data.vouchers) ? data.vouchers : [];
-            const tbody = document.getElementById('voucherTableBody');
-            tbody.innerHTML = '';
-
-            vouchers.sort((a, b) => b.isHot - a.isHot);
-
-            vouchers.forEach((voucher, index) => {
-                tbody.innerHTML += `
+            const vouchers = Array.isArray(data.vouchers)?data.vouchers:[];
+            const tbody = document.getElementById('voucherTableBody'); tbody.innerHTML='';
+            vouchers.sort((a,b)=>b.isHot - a.isHot);
+            vouchers.forEach((v,index)=>{
+                tbody.innerHTML+=`
                     <tr>
-                        <td>${index + 1}</td>
-                        <td>${voucher.title}</td>
-                        <td>${voucher.description}</td>
-                        <td class="price">${voucher.price} $</td>
-                        <td>${voucher.tourType}</td>
-                        <td>${voucher.transferType}</td>
-                        <td class="stars">${renderStars(voucher.hotelType)}</td>
-                        <td>${voucher.arrivalDate} – ${voucher.evictionDate}</td>
-                        <td>${voucher.isHot ? '<span class="hot-badge">🔥 HOT</span>' : ''}</td>
-                        <td>
-                            <button class="btn btn-success btn-sm" onclick="orderVoucher('${voucher.id}')">
-                                Order
-                            </button>
-                        </td>
+                        <td>${index+1}</td>
+                        <td>${v.title}</td>
+                        <td>${v.description}</td>
+                        <td class="price">${v.price} $</td>
+                        <td>${v.tourType}</td>
+                        <td>${v.transferType}</td>
+                        <td class="stars">${renderStars(v.hotelType)}</td>
+                        <td>${v.arrivalDate} – ${v.evictionDate}</td>
+                        <td class="hot-cell">${v.isHot ? '<span class="hot-badge">🔥</span>' : ''}</td>
+                        <td><button class="btn btn-success btn-sm" onclick="orderVoucher('${v.id}')"
+                            th:text="#{catalog.order}">Order</button></td>
                     </tr>
                 `;
             });
-
-        } catch (err) {
-            showMessage(err.message, 'error');
-        }
+        } catch(err){ showMessage(err.message,'error'); }
     }
 
-    async function orderVoucher(voucherId) {
-        const token = localStorage.getItem('jwt');
-        if (!token) return;
-
+    async function orderVoucher(voucherId){
+        const token = localStorage.getItem('jwt'); if(!token) return;
         try {
-            const response = await fetch(`/api/vouchers/order/${voucherId}`, {
-                method: 'POST',
-                headers: { 'Authorization': 'Bearer ' + token }
+            const response = await fetch(`/api/vouchers/order/${voucherId}`,{
+                method:'POST', headers:{'Authorization':'Bearer '+token}
             });
-
             const data = await response.json();
-
-            if (!response.ok) {
-                const reason = data.message || 'Order failed';
-                showMessage(reason, 'error'); // center error message
+            if(!response.ok){
+                const msg = data.message || [[#{catalog.orderFailed}]];
+                showMessage(msg,'error');
                 return;
             }
-
-            showMessage('Voucher ordered successfully!', 'success');
-            loadVouchers();
-            loadUserInfo();
-
-        } catch (err) {
-            showMessage(err.message, 'error');
-        }
+            showMessage([[#{catalog.orderSuccess}]],'success');
+            loadVouchers(); loadUserInfo();
+        } catch(err){ showMessage(err.message,'error'); }
     }
 
-    window.onload = () => {
-        loadUserInfo();
-        loadVouchers();
-    };
+    window.onload = ()=>{ loadUserInfo(); loadVouchers(); };
 </script>
 
 </body>

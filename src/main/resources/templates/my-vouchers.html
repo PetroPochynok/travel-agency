@@ -1,19 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>My Vouchers</title>
+    <title th:text="#{myVouchers.title}">My Vouchers</title>
 
     <link rel="stylesheet"
           href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 
     <style>
-        body {
-            background-color: #eef4fb;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        body { background-color: #eef4fb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-        /* ===== Top bar ===== */
+        /* Top bar */
         .top-bar {
             background: #ffffff;
             padding: 15px 30px;
@@ -22,174 +19,105 @@
             justify-content: space-between;
             align-items: center;
         }
-
-        .top-bar h4 {
-            margin: 0;
-            color: #2c3e50;
-            font-weight: 600;
+        .top-bar h4 { margin: 0; color: #2c3e50; font-weight: 600; }
+        .top-right { display: flex; align-items: center; gap: 15px; }
+        .user-name { font-weight: 600; color: #2c3e50; }
+        .balance { font-weight: 600; color: #27ae60; }
+        .btn-logout, .btn-back-catalog {
+            padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none;
         }
+        .btn-logout { background-color: #e74c3c; color: white; }
+        .btn-logout:hover { background-color: #c0392b; }
+        .btn-back-catalog { background-color: #2980b9; color: white; }
+        .btn-back-catalog:hover { background-color: #1c5980; }
 
-        .top-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        /* Language buttons */
+        .lang-switch { text-align: center; margin: 15px 0; }
+        .lang-switch a {
+            margin: 0 5px; padding: 5px 10px; border-radius: 5px;
+            background-color: #27ae60; color: white; font-weight: 600;
+            text-decoration: none; font-size: 0.85rem;
         }
+        .lang-switch a:hover { background-color: #1e8449; }
 
-        .user-name {
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .balance {
-            font-weight: 600;
-            color: #27ae60;
-        }
-
-        .btn-logout {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-logout:hover {
-            background-color: #c0392b;
-        }
-
-        .btn-back-catalog {
-            background-color: #2980b9;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-back-catalog:hover {
-            background-color: #1c5980;
-        }
-
-        /* ===== Vouchers card ===== */
+        /* Catalog card */
         .catalog-card {
-            background: #ffffff;
-            margin-top: 30px;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            background: #ffffff; margin-top: 10px; padding: 25px;
+            border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1);
         }
+        .table th { background-color: #f5f8fc; text-align: center; }
+        .table td { vertical-align: middle; }
+        .price { font-weight: 600; color: #2c3e50; white-space: nowrap; }
+        .hot-badge { color: #e74c3c; font-weight: 700; display: block; }
+        .hot-cell { text-align: center; vertical-align: middle; }
+        .stars { color: #f1c40f; font-size: 1.1rem; white-space: nowrap; }
 
-        .table th {
-            background-color: #f5f8fc;
-        }
-
-        .price {
-            font-weight: 600;
-            color: #2c3e50;
-            white-space: nowrap;
-        }
-
-        .hot-badge {
-            color: #e74c3c;
-            font-weight: 700;
-        }
-
-        .stars {
-            color: #f1c40f;
-            font-size: 1.1rem;
-            white-space: nowrap;
-        }
-
-        /* ===== Centered messages ===== */
+        /* Centered messages */
         #message-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center;
             z-index: 9999;
         }
-
         #message-box {
-            background: white;
-            padding: 30px 40px;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-            text-align: center;
-            max-width: 400px;
+            background: white; padding: 30px 40px; border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3); text-align: center; max-width: 400px;
             font-size: 1.1rem;
         }
-
-        #message-box.success {
-            border-left: 6px solid #27ae60;
-        }
-
-        #message-box.error {
-            border-left: 6px solid #e74c3c;
-        }
-
+        #message-box.success { border-left: 6px solid #27ae60; }
+        #message-box.error { border-left: 6px solid #e74c3c; }
         #message-box button {
-            margin-top: 15px;
-            padding: 6px 14px;
-            border: none;
-            border-radius: 6px;
-            background-color: #2980b9;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
+            margin-top: 15px; padding: 6px 14px; border: none; border-radius: 6px;
+            background-color: #2980b9; color: white; font-weight: 600; cursor: pointer;
         }
-
-        #message-box button:hover {
-            background-color: #1c5980;
-        }
+        #message-box button:hover { background-color: #1c5980; }
     </style>
 </head>
 <body>
 
-<!-- ===== Top bar ===== -->
+<!-- Top bar -->
 <div class="top-bar">
     <h4>🌍 Travel Agency</h4>
-
     <div class="top-right">
-        <div class="user-name" id="userName">User Name</div>
-        <div class="balance" id="balance">Balance: 0.00 $</div>
-        <button class="btn-back-catalog" onclick="goBackCatalog()">Back to Catalog</button>
-        <button class="btn-logout" onclick="logout()">Logout</button>
+        <div class="user-name" id="userName" th:text="#{catalog.userName}">User Name</div>
+        <div class="balance" id="balance" th:text="#{catalog.balance}">Balance: 0.00 $</div>
+        <button class="btn-back-catalog" onclick="goBackCatalog()" th:text="#{myVouchers.backCatalog}">Back to Catalog</button>
+        <button class="btn-logout" onclick="logout()" th:text="#{catalog.logout}">Logout</button>
     </div>
+</div>
+
+<!-- Language buttons -->
+<div class="lang-switch">
+    <a th:href="@{/catalog/my(lang='en')}">EN</a>
+    <a th:href="@{/catalog/my(lang='uk')}">UA</a>
+    <a th:href="@{/catalog/my(lang='fr')}">FR</a>
+    <a th:href="@{/catalog/my(lang='de')}">DE</a>
+    <a th:href="@{/catalog/my(lang='es')}">ES</a>
 </div>
 
 <div class="container">
     <div class="catalog-card">
-        <h3 class="mb-4">My Vouchers</h3>
-
+        <h3 class="mb-4" th:text="#{myVouchers.title}">My Vouchers</h3>
         <table class="table table-bordered">
             <thead>
             <tr>
                 <th>#</th>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Price</th>
-                <th>Tour</th>
-                <th>Transfer</th>
-                <th>Hotel</th>
-                <th>Dates</th>
-                <th>Hot</th>
+                <th th:text="#{catalog.titleCol}">Title</th>
+                <th th:text="#{catalog.description}">Description</th>
+                <th th:text="#{catalog.price}">Price</th>
+                <th th:text="#{catalog.tour}">Tour</th>
+                <th th:text="#{catalog.transfer}">Transfer</th>
+                <th th:text="#{catalog.hotel}">Hotel</th>
+                <th th:text="#{catalog.dates}">Dates</th>
+                <th th:text="#{catalog.hot}">HOT</th>
             </tr>
             </thead>
             <tbody id="voucherTableBody"></tbody>
         </table>
-
         <p id="error" class="text-danger mt-2"></p>
     </div>
 </div>
 
-<!-- ===== Centered Message Overlay ===== -->
+<!-- Message overlay -->
 <div id="message-overlay">
     <div id="message-box">
         <div id="message-text"></div>
@@ -197,107 +125,72 @@
     </div>
 </div>
 
-<script>
-    const overlay = document.getElementById('message-overlay');
-    const box = document.getElementById('message-box');
-    const text = document.getElementById('message-text');
-
-    function showMessage(msg, type = 'success') {
+<script th:inline="javascript">
+    function showMessage(msg, type='success') {
+        const overlay = document.getElementById('message-overlay');
+        const box = document.getElementById('message-box');
+        const text = document.getElementById('message-text');
         text.innerText = msg;
         box.className = type;
-        overlay.style.display = 'flex';
+        overlay.style.display='flex';
     }
 
-    function closeMessage() {
-        overlay.style.display = 'none';
+    function closeMessage() { document.getElementById('message-overlay').style.display='none'; }
+
+    async function loadUserInfo() {
+        const token = localStorage.getItem('jwt'); if(!token) return;
+        try {
+            const response = await fetch('/api/users/me',{headers:{'Authorization':'Bearer '+token}});
+            if(!response.ok) return;
+            const user = await response.json();
+            if(user) {
+                document.getElementById('userName').innerText = `${user.firstName} ${user.lastName}`;
+                document.getElementById('balance').innerText = `${user.balance.toFixed(2)} $`;
+            }
+        } catch(e){ console.warn('Failed to load user info'); }
     }
 
     function logout() {
         localStorage.removeItem('jwt');
-        showMessage('You have been logged out', 'success');
-        setTimeout(() => { window.location.href = '/login'; }, 1000);
+        showMessage([[#{catalog.logoutSuccess}]], 'success');
+        setTimeout(()=>window.location.href='/login',1000);
     }
 
-    function goBackCatalog() {
-        window.location.href = '/catalog';
-    }
+    function goBackCatalog(){ window.location.href='/catalog'; }
 
     function renderStars(hotelType) {
-        const map = {
-            ONE_STAR: 1,
-            TWO_STARS: 2,
-            THREE_STARS: 3,
-            FOUR_STARS: 4,
-            FIVE_STARS: 5
-        };
-        return '⭐'.repeat(map[hotelType] || 0);
-    }
-
-    async function loadUserInfo() {
-        const token = localStorage.getItem('jwt');
-        if (!token) return;
-
-        try {
-            const response = await fetch('/api/users/me', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            if (!response.ok) return;
-
-            const user = await response.json();
-            if (user && user.balance !== undefined) {
-                document.getElementById('userName').innerText = `${user.firstName} ${user.lastName}`;
-                document.getElementById('balance').innerText = `Balance: ${user.balance} $`;
-            }
-        } catch (e) {
-            console.warn('Failed to load user info');
-        }
+        const map={ONE_STAR:1,TWO_STARS:2,THREE_STARS:3,FOUR_STARS:4,FIVE_STARS:5};
+        return '⭐'.repeat(map[hotelType]||0);
     }
 
     async function loadMyVouchers() {
-        const token = localStorage.getItem('jwt');
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
-
+        const token = localStorage.getItem('jwt'); if(!token){window.location.href='/login'; return;}
         try {
-            const response = await fetch('/api/vouchers/my', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            if (!response.ok) throw new Error('Failed to load your vouchers');
-
+            const response = await fetch('/api/vouchers/my',{headers:{'Authorization':'Bearer '+token}});
+            if(!response.ok) throw new Error('Failed to load your vouchers');
             const data = await response.json();
-            const vouchers = Array.isArray(data.results) ? data.results : [];
-            const tbody = document.getElementById('voucherTableBody');
-            tbody.innerHTML = '';
-
-            vouchers.sort((a, b) => b.isHot - a.isHot);
-
-            vouchers.forEach((voucher, index) => {
-                tbody.innerHTML += `
+            const vouchers = Array.isArray(data.results)?data.results:[];
+            const tbody = document.getElementById('voucherTableBody'); tbody.innerHTML='';
+            vouchers.sort((a,b)=>b.isHot - a.isHot);
+            vouchers.forEach((v,index)=>{
+                tbody.innerHTML+=`
                     <tr>
-                        <td>${index + 1}</td>
-                        <td>${voucher.title}</td>
-                        <td>${voucher.description}</td>
-                        <td class="price">${voucher.price} $</td>
-                        <td>${voucher.tourType}</td>
-                        <td>${voucher.transferType}</td>
-                        <td class="stars">${renderStars(voucher.hotelType)}</td>
-                        <td>${voucher.arrivalDate} – ${voucher.evictionDate}</td>
-                        <td>${voucher.isHot ? '<span class="hot-badge">🔥 HOT</span>' : ''}</td>
+                        <td>${index+1}</td>
+                        <td>${v.title}</td>
+                        <td>${v.description}</td>
+                        <td class="price">${v.price} $</td>
+                        <td>${v.tourType}</td>
+                        <td>${v.transferType}</td>
+                        <td class="stars">${renderStars(v.hotelType)}</td>
+                        <td>${v.arrivalDate} – ${v.evictionDate}</td>
+                        <td class="hot-cell">${v.isHot ? '<span class="hot-badge">🔥</span>' : ''}</td>
                     </tr>
                 `;
             });
-
-        } catch (err) {
-            showMessage(err.message, 'error');
-        }
+        } catch(err){ showMessage(err.message,'error'); }
     }
 
-    window.onload = () => {
-        loadUserInfo();
-        loadMyVouchers();
-    };
+    window.onload = ()=>{ loadUserInfo(); loadMyVouchers(); };
 </script>
 
 </body>
