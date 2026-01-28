@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Register</title>
+    <title th:text="#{register.title}">Register</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -12,33 +12,62 @@
             justify-content: center;
             align-items: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            position: relative;
         }
 
         .register-card {
             background: #ffffff;
-            padding: 30px 30px;
+            padding: 30px;
             border-radius: 12px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
+            box-sizing: border-box;
+            position: relative;
         }
 
-        .register-card h2 {
+        /* Language buttons on top */
+        .lang-switch {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .lang-switch a {
+            margin: 0 5px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #2980b9;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .lang-switch a:hover {
+            background-color: #1c5980;
+        }
+
+        h2 {
             margin: 0 0 20px 0;
             font-weight: 600;
             color: #2c3e50;
             text-align: center;
         }
 
+        .form-group {
+            margin-bottom: 12px;
+        }
+
         .form-control {
             width: 100%;
             padding: 12px 15px;
-            margin-top: 5px;
-            margin-bottom: 5px;
             font-size: 1rem;
             border-radius: 8px;
             border: 1px solid #ccc;
-            transition: all 0.3s ease;
             box-sizing: border-box;
         }
 
@@ -56,19 +85,26 @@
             font-size: 1rem;
             background-color: #2980b9;
             border: none;
-            transition: all 0.3s ease;
             color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
             margin-top: 10px;
         }
 
         .btn-primary:hover {
             background-color: #1c5980;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: scale(1.03);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 3px;
+            display: block;
         }
 
         .register-footer {
-            margin-top: 20px;
+            margin-top: 18px;
             text-align: center;
             font-size: 0.9rem;
         }
@@ -81,107 +117,135 @@
         .register-footer a:hover {
             text-decoration: underline;
         }
-
-        .error-message {
-            color: #e74c3c;
-            font-size: 0.85rem;
-            margin-bottom: 10px;
-            display: block;
-        }
     </style>
 </head>
 <body>
-<div class="register-card">
-    <h2>Register</h2>
+<div class="container">
 
-    <div class="form-group">
-        <label>Username</label>
-        <input id="username" class="form-control" placeholder="Enter your username">
-        <span id="usernameError" class="error-message"></span>
+    <!-- Language buttons -->
+    <div class="lang-switch">
+        <a th:href="@{/register(lang='en')}">EN</a>
+        <a th:href="@{/register(lang='uk')}">UA</a>
+        <a th:href="@{/register(lang='fr')}">FR</a>
+        <a th:href="@{/register(lang='de')}">DE</a>
+        <a th:href="@{/register(lang='es')}">ES</a>
     </div>
 
-    <div class="form-group">
-        <label>First Name</label>
-        <input id="firstName" class="form-control" placeholder="Enter your first name">
-        <span id="firstNameError" class="error-message"></span>
-    </div>
+    <div class="register-card">
 
-    <div class="form-group">
-        <label>Last Name</label>
-        <input id="lastName" class="form-control" placeholder="Enter your last name">
-        <span id="lastNameError" class="error-message"></span>
-    </div>
+        <h2 th:text="#{register.title}">Register</h2>
 
-    <div class="form-group">
-        <label>Email</label>
-        <input id="email" class="form-control" placeholder="Enter your email">
-        <span id="emailError" class="error-message"></span>
-    </div>
+        <!-- Data attributes for localized messages -->
+        <div id="messages" th:data-empty-fields="#{user.emptyFields}"></div>
 
-    <div class="form-group">
-        <label>Password</label>
-        <input id="password" type="password" class="form-control" placeholder="Enter your password">
-        <span id="passwordError" class="error-message"></span>
-    </div>
+        <div class="form-group">
+            <label th:text="#{label.username}">Username</label>
+            <input id="username" class="form-control" th:placeholder="#{label.username}">
+            <span id="usernameError" class="error-message"></span>
+        </div>
 
-    <div class="form-group">
-        <label>Confirm Password</label>
-        <input id="confirmPassword" type="password" class="form-control" placeholder="Confirm your password">
-        <span id="confirmPasswordError" class="error-message"></span>
-    </div>
+        <div class="form-group">
+            <label th:text="#{label.firstName}">First Name</label>
+            <input id="firstName" class="form-control" th:placeholder="#{label.firstName}">
+            <span id="firstNameError" class="error-message"></span>
+        </div>
 
-    <div class="form-group">
-        <label>Phone Number</label>
-        <input id="phoneNumber" class="form-control" placeholder="Enter your phone number">
-        <span id="phoneNumberError" class="error-message"></span>
-    </div>
+        <div class="form-group">
+            <label th:text="#{label.lastName}">Last Name</label>
+            <input id="lastName" class="form-control" th:placeholder="#{label.lastName}">
+            <span id="lastNameError" class="error-message"></span>
+        </div>
 
-    <button class="btn-primary" onclick="register()">Register</button>
+        <div class="form-group">
+            <label th:text="#{label.email}">Email</label>
+            <input id="email" class="form-control" th:placeholder="#{label.email}">
+            <span id="emailError" class="error-message"></span>
+        </div>
 
-    <div class="register-footer">
-        Already have an account? <a href="/login">Login here</a>
+        <div class="form-group">
+            <label th:text="#{label.password}">Password</label>
+            <input id="password" type="password" class="form-control" th:placeholder="#{label.password}">
+            <span id="passwordError" class="error-message"></span>
+        </div>
+
+        <div class="form-group">
+            <label th:text="#{label.confirmPassword}">Confirm Password</label>
+            <input id="confirmPassword" type="password" class="form-control" th:placeholder="#{label.confirmPassword}">
+            <span id="confirmPasswordError" class="error-message"></span>
+        </div>
+
+        <div class="form-group">
+            <label th:text="#{label.phoneNumber}">Phone Number</label>
+            <input id="phoneNumber" class="form-control" th:placeholder="#{label.phoneNumber}">
+            <span id="phoneNumberError" class="error-message"></span>
+        </div>
+
+        <button class="btn-primary" onclick="register()" th:text="#{button.register}">Register</button>
+
+        <div class="register-footer">
+            <span th:text="#{login.noAccount}">Already have an account?</span>
+            <a href="/login" th:text="#{button.login}">Login here</a>
+        </div>
     </div>
 </div>
 
 <script>
     async function register() {
-
         // Clear previous errors
         document.querySelectorAll('.error-message').forEach(e => e.innerText = '');
 
-        const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                username: document.getElementById('username').value,
-                firstName: document.getElementById('firstName').value,
-                lastName: document.getElementById('lastName').value,
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value,
-                confirmPassword: document.getElementById('confirmPassword').value,
-                phoneNumber: document.getElementById('phoneNumber').value
-            })
-        });
+        const emptyMessage = document.getElementById('messages').dataset.emptyFields;
 
-        const data = await response.json();
+        const username = document.getElementById('username').value.trim();
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const confirmPassword = document.getElementById('confirmPassword').value.trim();
+        const phoneNumber = document.getElementById('phoneNumber').value.trim();
 
-        if (response.ok) {
-            alert("Registration successful! Please login.");
-            window.location.href = '/login';
-            return;
-        }
+        let hasEmpty = false;
+        if (!username) { document.getElementById('usernameError').innerText = emptyMessage; hasEmpty = true; }
+        if (!firstName) { document.getElementById('firstNameError').innerText = emptyMessage; hasEmpty = true; }
+        if (!lastName) { document.getElementById('lastNameError').innerText = emptyMessage; hasEmpty = true; }
+        if (!email) { document.getElementById('emailError').innerText = emptyMessage; hasEmpty = true; }
+        if (!password) { document.getElementById('passwordError').innerText = emptyMessage; hasEmpty = true; }
+        if (!confirmPassword) { document.getElementById('confirmPasswordError').innerText = emptyMessage; hasEmpty = true; }
+        if (!phoneNumber) { document.getElementById('phoneNumberError').innerText = emptyMessage; hasEmpty = true; }
 
-        if (typeof data === 'object' && !data.message) {
-            Object.keys(data).forEach(field => {
-                const errorSpan = document.getElementById(field + 'Error');
-                if (errorSpan) {
-                    errorSpan.innerText = data[field];
-                }
+        if (hasEmpty) return;
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, firstName, lastName, email, password, confirmPassword, phoneNumber})
             });
-        } else if (data.message) {
-            alert(data.message);
+
+            const data = await response.json();
+
+            if (response.ok) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Show backend validation errors
+            if (typeof data === 'object' && !data.message) {
+                Object.keys(data).forEach(field => {
+                    const errorSpan = document.getElementById(field + 'Error');
+                    if (errorSpan) {
+                        errorSpan.innerText = data[field];
+                    }
+                });
+            } else if (data.message) {
+                alert(data.message);
+            }
+        } catch (err) {
+            alert("Network error, please try again");
+            console.error(err);
         }
     }
 </script>
+
 </body>
 </html>

@@ -22,7 +22,6 @@ public class VoucherMapperImpl implements VoucherMapper {
 
         Voucher voucher = modelMapper.map(voucherDTO, Voucher.class);
 
-        // default status if not provided
         if (voucher.getStatus() == null) {
             voucher.setStatus(VoucherStatus.REGISTERED);
         }

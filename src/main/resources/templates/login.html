@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title th:text="#{login.title}">Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -12,40 +12,63 @@
             justify-content: center;
             align-items: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            position: relative;
         }
 
         .login-card {
             background: #ffffff;
-            padding: 30px 30px;
+            padding: 30px;
             border-radius: 12px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
+            box-sizing: border-box;
+            position: relative;
         }
 
-        .login-card h2 {
+        /* 🌐 Language buttons on top */
+        .lang-switch {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .lang-switch a {
+            margin: 0 5px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #27ae60;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .lang-switch a:hover {
+            background-color: #1e8449;
+        }
+
+        h2 {
             margin: 0 0 20px 0;
             font-weight: 600;
             color: #2c3e50;
             text-align: center;
         }
 
+        .form-group {
+            margin-bottom: 15px;
+        }
+
         .form-control {
             width: 100%;
             padding: 12px 15px;
-            margin-top: 5px;
-            margin-bottom: 15px;
             font-size: 1rem;
             border-radius: 8px;
             border: 1px solid #ccc;
-            transition: all 0.3s ease;
             box-sizing: border-box;
-        }
-
-        .form-control:focus {
-            border-color: #27ae60;
-            box-shadow: 0 0 8px rgba(39, 174, 96, 0.3);
-            outline: none;
         }
 
         .btn-primary {
@@ -56,14 +79,21 @@
             font-size: 1rem;
             background-color: #27ae60;
             border: none;
-            transition: all 0.3s ease;
             color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
         .btn-primary:hover {
             background-color: #1e8449;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: scale(1.03);
+        }
+
+        #error {
+            margin-top: 10px;
+            text-align: center;
+            color: #e74c3c;
+            font-weight: 500;
         }
 
         .login-footer {
@@ -80,35 +110,46 @@
         .login-footer a:hover {
             text-decoration: underline;
         }
-
-        #error {
-            margin-top: 10px;
-            text-align: center;
-            color: #e74c3c;
-            font-weight: 500;
-        }
     </style>
 </head>
 <body>
-<div class="login-card">
-    <h2>Login</h2>
 
-    <div class="form-group">
-        <label>Username</label>
-        <input id="username" class="form-control" placeholder="Enter your username">
+<div class="container">
+
+    <!-- Language buttons on top -->
+    <div class="lang-switch">
+        <a th:href="@{/login(lang='en')}">EN</a>
+        <a th:href="@{/login(lang='uk')}">UA</a>
+        <a th:href="@{/login(lang='fr')}">FR</a>
+        <a th:href="@{/login(lang='de')}">DE</a>
+        <a th:href="@{/login(lang='es')}">ES</a>
     </div>
 
-    <div class="form-group">
-        <label>Password</label>
-        <input id="password" type="password" class="form-control" placeholder="Enter your password">
-    </div>
+    <div class="login-card">
 
-    <button class="btn-primary" onclick="login()">Login</button>
+        <h2 th:text="#{login.title}">Login</h2>
 
-    <p id="error"></p>
+        <!-- data attribute for localized empty message -->
+        <div id="messages" th:data-empty-fields="#{login.emptyFields}"></div>
 
-    <div class="login-footer">
-        Don't have an account? <a href="/register">Register here</a>
+        <div class="form-group">
+            <label th:text="#{login.username}">Username</label>
+            <input id="username" class="form-control" th:placeholder="#{login.username}">
+        </div>
+
+        <div class="form-group">
+            <label th:text="#{login.password}">Password</label>
+            <input id="password" type="password" class="form-control" th:placeholder="#{login.password}">
+        </div>
+
+        <button class="btn-primary" onclick="login()" th:text="#{login.button}">Login</button>
+
+        <p id="error"></p>
+
+        <div class="login-footer">
+            <span th:text="#{login.noAccount}">Don't have an account?</span>
+            <a href="/register" th:text="#{login.register}">Register here</a>
+        </div>
     </div>
 </div>
 
@@ -117,10 +158,13 @@
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
         const errorEl = document.getElementById('error');
+        const emptyMessage = document.getElementById('messages').dataset.emptyFields;
+
         errorEl.innerText = '';
 
         if (!username || !password) {
-            errorEl.innerText = 'Please enter username and password';
+            // локалізоване повідомлення
+            errorEl.innerText = emptyMessage;
             return;
         }
 
@@ -137,14 +181,13 @@
                 localStorage.setItem('jwt', data.token);
                 window.location.href = '/catalog';
             } else {
-                // show actual backend message if available
                 errorEl.innerText = data.message || 'Invalid credentials';
             }
         } catch (err) {
             errorEl.innerText = 'Network error, please try again';
-            console.error(err);
         }
     }
 </script>
+
 </body>
 </html>
