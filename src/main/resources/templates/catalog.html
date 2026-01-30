@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="#{catalog.title}">Voucher Catalog</title>
-    <link rel="stylesheet"
-          href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
         body { background-color: #eef4fb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .top-bar { background: #ffffff; padding: 15px 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
@@ -39,14 +37,10 @@
         .pagination-controls { margin-top: 15px; display: flex; justify-content: center; gap: 10px; }
         .pagination-controls button { padding: 6px 14px; border: none; border-radius: 6px; background-color: #2980b9; color: white; font-weight: 600; cursor: pointer; }
         .pagination-controls button:disabled { background-color: #ccc; cursor: default; }
-        .dates { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; vertical-align: middle;
-}
-
     </style>
 </head>
 <body>
 
-<!-- ===== Top bar ===== -->
 <div class="top-bar">
     <h4>🌍 Travel Agency</h4>
     <div class="top-right">
@@ -57,7 +51,6 @@
     </div>
 </div>
 
-<!-- ===== Language switch ===== -->
 <div class="lang-switch">
     <a th:href="@{/catalog(lang='en')}">EN</a>
     <a th:href="@{/catalog(lang='uk')}">UA</a>
@@ -70,7 +63,6 @@
     <div class="catalog-card">
         <h3 class="mb-4" th:text="#{catalog.title}">Voucher Catalog</h3>
 
-        <!-- ===== Filters in 1 row ===== -->
         <div class="filter-row">
             <select id="tourType">
                 <option value="">All Tours</option>
@@ -83,7 +75,6 @@
                 <option value="ADVENTURE">ADVENTURE</option>
                 <option value="CULTURAL">CULTURAL</option>
             </select>
-
             <select id="transferType">
                 <option value="">All Transfers</option>
                 <option value="BUS">BUS</option>
@@ -95,7 +86,6 @@
                 <option value="MINIBUS">MINIBUS</option>
                 <option value="ELECTRICAL_CARS">ELECTRICAL_CARS</option>
             </select>
-
             <select id="hotelType">
                 <option value="">All Hotels</option>
                 <option value="ONE_STAR">ONE_STAR</option>
@@ -104,14 +94,12 @@
                 <option value="FOUR_STARS">FOUR_STARS</option>
                 <option value="FIVE_STARS">FIVE_STARS</option>
             </select>
-
             <input type="text" id="description" th:placeholder="#{catalog.searchDescription}">
             <input type="number" id="minPrice" th:placeholder="#{catalog.minPrice}" min="0">
             <input type="number" id="maxPrice" th:placeholder="#{catalog.maxPrice}" min="0">
             <button th:text="#{catalog.search}" onclick="applyFilters()"></button>
         </div>
 
-        <!-- ===== Voucher Table ===== -->
         <table class="table table-bordered">
             <thead>
             <tr>
@@ -130,7 +118,6 @@
             <tbody id="voucherTableBody"></tbody>
         </table>
 
-        <!-- ===== Pagination Controls ===== -->
         <div class="pagination-controls">
             <button id="prevPage" onclick="changePage(currentPage-1)" th:text="#{catalog.previous}">Previous</button>
             <span id="pageInfo" style="align-self:center;"></span>
@@ -141,9 +128,6 @@
     </div>
 </div>
 
-<span id="orderText" th:text="#{catalog.order}" style="display:none;"></span>
-
-<!-- ===== Centered Message Overlay ===== -->
 <div id="message-overlay">
     <div id="message-box">
         <div id="message-text"></div>
@@ -151,171 +135,172 @@
     </div>
 </div>
 
+<div id="confirm-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%;
+     background: rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:10000;">
+    <div style="background:white; padding:30px 40px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.3); text-align:center; max-width:400px;">
+        <div id="confirm-text" style="font-size:1.1rem; margin-bottom:20px;"></div>
+        <div style="display:flex; justify-content:center; gap:15px;">
+            <button id="confirm-yes" style="padding:6px 14px; border:none; border-radius:6px; background:#27ae60; color:white; font-weight:600; cursor:pointer;">Yes</button>
+            <button id="confirm-no" style="padding:6px 14px; border:none; border-radius:6px; background:#e74c3c; color:white; font-weight:600; cursor:pointer;">No</button>
+        </div>
+    </div>
+</div>
+
+<span id="orderText" th:text="#{catalog.order}" hidden>Order</span>
+
 <script th:inline="javascript">
-    let currentPage = 0;
-    let totalPages = 0;
-    let currentFilters = {};
+    window.ORDER_TEXT = document.getElementById('orderText')?.innerText || 'Order';
+   let currentPage = 0, totalPages = 0, currentFilters = {};
 
-    function showMessage(msg, type='success') {
-        const overlay = document.getElementById('message-overlay');
-        const box = document.getElementById('message-box');
-        const text = document.getElementById('message-text');
-        text.innerText = msg;
-        box.className = type;
-        overlay.style.display='flex';
-    }
+   function showMessage(msg, type='success'){
+       const overlay=document.getElementById('message-overlay');
+       const box=document.getElementById('message-box');
+       box.className = type;
+       document.getElementById('message-text').innerText=msg;
+       overlay.style.display='flex';
+   }
+   function closeMessage(){ document.getElementById('message-overlay').style.display='none'; }
+   async function logout(){
+       localStorage.removeItem('jwt');
+       showMessage([[#{catalog.logoutSuccess}]], 'success');
+       setTimeout(()=>window.location.href='/login',1000);
+   }
+   function goMyVouchers(){ window.location.href='/catalog/my'; }
+   function renderStars(hotelType){ const map={ONE_STAR:1,TWO_STARS:2,THREE_STARS:3,FOUR_STARS:4,FIVE_STARS:5}; return '⭐'.repeat(map[hotelType]||0);}
+   function formatDate(dateStr){ const d=new Date(dateStr); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
 
-    function closeMessage() { document.getElementById('message-overlay').style.display='none'; }
+   function applyFilters(){
+       currentPage=0;
+       const tourType=document.getElementById('tourType').value;
+       const transferType=document.getElementById('transferType').value;
+       const hotelType=document.getElementById('hotelType').value;
+       const description=document.getElementById('description').value;
+       const minPriceInput=document.getElementById('minPrice').value;
+       const maxPriceInput=document.getElementById('maxPrice').value;
+       const minPrice=minPriceInput?parseFloat(minPriceInput):null;
+       const maxPrice=maxPriceInput?parseFloat(maxPriceInput):null;
+       if(minPrice!==null && maxPrice!==null && minPrice>maxPrice){ showMessage([[#{error.minPriceGreaterThanMax}]],'error'); return; }
 
-    async function logout() {
-        localStorage.removeItem('jwt');
-        showMessage([[#{catalog.logoutSuccess}]], 'success');
-        setTimeout(()=>window.location.href='/login',1000);
-    }
+       currentFilters={tourType:tourType||null, transferType:transferType||null, hotelType:hotelType||null, description:description||null, minPrice,maxPrice};
+       Object.keys(currentFilters).forEach(k=>{ if(currentFilters[k]===null) delete currentFilters[k];});
+       loadVouchers(currentFilters);
+   }
 
-    function goMyVouchers(){ window.location.href='/catalog/my'; }
+   function changePage(newPage){ if(newPage<0||newPage>=totalPages) return; currentPage=newPage; loadVouchers(currentFilters); }
 
-    function renderStars(hotelType) {
-        const map={ONE_STAR:1,TWO_STARS:2,THREE_STARS:3,FOUR_STARS:4,FIVE_STARS:5};
-        return '⭐'.repeat(map[hotelType]||0);
-    }
+   async function loadUserInfo(){
+       const token=localStorage.getItem('jwt'); if(!token) return;
+       try{
+           const r=await fetch('/api/users/me',{headers:{'Authorization':'Bearer '+token}});
+           if(!r.ok) return;
+           const u=await r.json();
+           if(u && u.balance!==undefined){
+               document.getElementById('userName').innerText=`${u.firstName} ${u.lastName}`;
+               document.getElementById('balance').innerText=`${u.balance.toFixed(2)} $`;
+           }
+       }catch(e){ console.warn('Failed to load user info'); }
+   }
 
-    function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        const day = String(date.getDate()).padStart(2,'0');
-        const month = String(date.getMonth()+1).padStart(2,'0');
-        const year = date.getFullYear();
-        return `${day}.${month}.${year}`;
-    }
+   async function loadVouchers(filters={}){
+       const token=localStorage.getItem('jwt'); if(!token){window.location.href='/login';return;}
+       try{
+           const params=new URLSearchParams(filters);
+           params.append("page",currentPage); params.append("size",10);
+           const resp=await fetch('/api/vouchers/catalog?'+params.toString(), {headers:{'Authorization':'Bearer '+token}});
+           if(!resp.ok) throw new Error([[#{catalog.loadError}]]);
+           const data=await resp.json();
+           const vouchers=Array.isArray(data.vouchers)?data.vouchers:[];
+           const tbody=document.getElementById('voucherTableBody'); tbody.innerHTML='';
+           vouchers.sort((a,b)=>b.isHot-a.isHot);
+           vouchers.forEach((v,i)=>{
+               const arrival=formatDate(v.arrivalDate);
+               const eviction=formatDate(v.evictionDate);
+               tbody.innerHTML+=`
+                   <tr>
+                       <td>${i+1+currentPage*10}</td>
+                       <td>${v.title}</td>
+                       <td>${v.description}</td>
+                       <td class="price">${v.price} $</td>
+                       <td>${v.tourType}</td>
+                       <td>${v.transferType}</td>
+                       <td class="stars">${renderStars(v.hotelType)}</td>
+                       <td class="dates">${arrival} – ${eviction}</td>
+                       <td class="hot-cell">${v.isHot?'<span class="hot-badge">🔥</span>':''}</td>
+                       <td>
+                           <button class="btn btn-success btn-sm" onclick="orderVoucher('${v.id}', this)">
+                               <span>${window.ORDER_TEXT}</span>
+                           </button>
+                       </td>
+                   </tr>
+               `;
+           });
+           currentPage=data.currentPage; totalPages=data.totalPages;
+           document.getElementById("pageInfo").innerText=`Page ${currentPage+1} of ${totalPages}`;
+           document.getElementById("prevPage").disabled=currentPage===0;
+           document.getElementById("nextPage").disabled=currentPage+1>=totalPages;
+       }catch(err){ showMessage(err.message,'error'); }
+   }
 
-    function applyFilters() {
-    currentPage = 0;
-    const tourTypeVal = document.getElementById('tourType').value;
-    const transferTypeVal = document.getElementById('transferType').value;
-    const hotelTypeVal = document.getElementById('hotelType').value;
-    const descriptionVal = document.getElementById('description').value;
-    const minPriceInput = document.getElementById('minPrice').value;
-    const maxPriceInput = document.getElementById('maxPrice').value;
+   function orderVoucher(voucherId, btn) {
+   const overlay = document.getElementById('confirm-overlay');
+   const confirmText = document.getElementById('confirm-text');
+   const yesBtn = document.getElementById('confirm-yes');
+   const noBtn = document.getElementById('confirm-no');
 
-    const minPrice = minPriceInput ? parseFloat(minPriceInput) : null;
-    const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : null;
+   const confirmMsg = /*[[#{catalog.orderConfirm}]]*/
+       'Are you sure you want to order this voucher?';
 
-    if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) {
-        showMessage([[#{error.minPriceGreaterThanMax}]], 'error');
-        return;
-    }
+   confirmText.innerText = confirmMsg;
+   overlay.style.display = 'flex';
 
-    currentFilters = {
-        tourType: tourTypeVal || null,
-        transferType: transferTypeVal || null,
-        hotelType: hotelTypeVal || null,
-        description: descriptionVal || null,
-        minPrice: minPrice,
-        maxPrice: maxPrice
-    };
+   function cleanUp() {
+       overlay.style.display = 'none';
+       yesBtn.removeEventListener('click', onYes);
+       noBtn.removeEventListener('click', onNo);
+   }
 
-    Object.keys(currentFilters).forEach(key => {
-        if (currentFilters[key] === null) delete currentFilters[key];
-    });
+   async function onYes() {
+       cleanUp();
+       const token = localStorage.getItem('jwt');
+       if (!token) return;
 
-    loadVouchers(currentFilters);
+       try {
+           const response = await fetch(`/api/vouchers/order/${voucherId}`, {
+               method: 'POST',
+               headers: { 'Authorization': 'Bearer ' + token }
+           });
+
+           const data = await response.json();
+           if (!response.ok) {
+               showMessage(
+                   data.message ||
+                   /*[[#{catalog.orderFail}]]*/ 'Order failed',
+                   'error'
+               );
+               return;
+           }
+
+           showMessage(
+               /*[[#{catalog.orderSuccess}]]*/ 'Order successful!',
+               'success'
+           );
+           loadVouchers(currentFilters);
+           loadUserInfo();
+       } catch (err) {
+           showMessage(err.message, 'error');
+       }
+   }
+
+   function onNo() { cleanUp(); }
+
+   yesBtn.addEventListener('click', onYes);
+   noBtn.addEventListener('click', onNo);
 }
 
-    function changePage(newPage) {
-        if(newPage < 0 || newPage >= totalPages) return;
-        currentPage = newPage;
-        loadVouchers(currentFilters);
-    }
-
-    async function loadUserInfo() {
-        const token = localStorage.getItem('jwt'); if(!token) return;
-        try {
-            const response = await fetch('/api/users/me',{headers:{'Authorization':'Bearer '+token}});
-            if(!response.ok) return;
-            const user = await response.json();
-            if(user && user.balance !== undefined){
-                document.getElementById('userName').innerText = `${user.firstName} ${user.lastName}`;
-                document.getElementById('balance').innerText = `${user.balance.toFixed(2)} $`;
-            }
-        } catch(e){ console.warn('Failed to load user info'); }
-    }
-
-    async function loadVouchers(filters={}) {
-        const token = localStorage.getItem('jwt');
-        if(!token){ window.location.href='/login'; return; }
-
-        const orderText = document.getElementById('orderText').innerText;
-
-        try {
-            const params = new URLSearchParams(filters);
-            params.append("page", currentPage);
-            params.append("size", 10); // або можна зробити змінним через UI
-
-            const response = await fetch('/api/vouchers/catalog?' + params.toString(), {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-
-            if (!response.ok) throw new Error([[#{catalog.loadError}]]);
-
-            const data = await response.json();
-            const vouchers = Array.isArray(data.vouchers) ? data.vouchers : [];
-            const tbody = document.getElementById('voucherTableBody');
-            tbody.innerHTML = '';
-            vouchers.sort((a,b)=>b.isHot - a.isHot);
-
-            vouchers.forEach((v,index)=>{
-                const arrival = formatDate(v.arrivalDate);
-                const eviction = formatDate(v.evictionDate);
-                tbody.innerHTML+=`
-                    <tr>
-                        <td>${index+1 + currentPage*10}</td>
-                        <td>${v.title}</td>
-                        <td>${v.description}</td>
-                        <td class="price">${v.price} $</td>
-                        <td>${v.tourType}</td>
-                        <td>${v.transferType}</td>
-                        <td class="stars">${renderStars(v.hotelType)}</td>
-                        <td class="dates">${arrival} – ${eviction}</td>
-                        <td class="hot-cell">${v.isHot ? '<span class="hot-badge">🔥</span>' : ''}</td>
-                        <td>
-                            <button class="btn btn-success btn-sm" onclick="orderVoucher('${v.id}')">
-                                ${orderText}
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            currentPage = data.currentPage;
-            totalPages = data.totalPages;
-            document.getElementById("pageInfo").innerText = `Page ${currentPage+1} of ${totalPages}`;
-            document.getElementById("prevPage").disabled = currentPage===0;
-            document.getElementById("nextPage").disabled = currentPage+1>=totalPages;
-
-        } catch(err){
-            showMessage(err.message,'error');
-        }
-    }
-
-    async function orderVoucher(voucherId){
-        const token = localStorage.getItem('jwt'); if(!token) return;
-        try {
-            const response = await fetch(`/api/vouchers/order/${voucherId}`,{
-                method:'POST', headers:{'Authorization':'Bearer '+token}
-            });
-            const data = await response.json();
-            if(!response.ok){
-                const msg = data.message || [[#{catalog.orderFailed}]];
-                showMessage(msg,'error');
-                return;
-            }
-            showMessage([[#{catalog.orderSuccess}]],'success');
-            loadVouchers(currentFilters); loadUserInfo();
-        } catch(err){ showMessage(err.message,'error'); }
-    }
-
-    window.onload = ()=>{ loadUserInfo(); loadVouchers(); };
+   window.onload = () => {
+   loadUserInfo();
+   loadVouchers();
+};
 </script>
-
 </body>
 </html>
