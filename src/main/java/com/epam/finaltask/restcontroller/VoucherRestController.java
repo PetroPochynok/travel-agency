@@ -136,9 +136,13 @@ public class VoucherRestController {
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice
     ) {
-        Sort sort = direction.equalsIgnoreCase("asc")
+        Sort sort = Sort.by(Sort.Direction.DESC, "isHot");
+
+        Sort secondarySort = direction.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
+
+        sort = sort.and(secondarySort);
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
@@ -161,6 +165,7 @@ public class VoucherRestController {
 
         return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")

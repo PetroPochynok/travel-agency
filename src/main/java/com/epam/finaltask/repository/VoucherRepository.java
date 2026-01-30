@@ -16,6 +16,4 @@ public interface VoucherRepository extends JpaRepository<Voucher, UUID>, JpaSpec
     Page<Voucher> findAllByHotelType(HotelType hotelType, Pageable pageable);
     Page<Voucher> findAllByStatusOrderByIsHotDesc(VoucherStatus status, Pageable pageable);
     List<Voucher> findAllByUser_Username(String username);
-    Page<Voucher> findAllByDescriptionContainingIgnoreCase(String description, Pageable pageable);
-    Page<Voucher> findAllByPriceBetween(Double minPrice, Double maxPrice, Pageable pageable);
 }
