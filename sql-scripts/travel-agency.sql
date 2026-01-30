@@ -50,12 +50,13 @@ INSERT INTO vouchers (
 (UUID_TO_BIN(UUID()), 'Adventure in Peru', 'Hike the Andes mountains.', 2000.00, 'ADVENTURE', 'PLANE', 'FOUR_STARS', 'REGISTERED', '2026-08-10', '2026-08-20', NULL, TRUE),
 (UUID_TO_BIN(UUID()), 'Eco Tour Costa Rica', 'Rainforest and wildlife.', 1800.00, 'ECO', 'BUS', 'THREE_STARS', 'REGISTERED', '2026-09-05', '2026-09-15', NULL, FALSE),
 (UUID_TO_BIN(UUID()), 'Health Retreat Thailand', 'Relax with spa and yoga.', 1400.00, 'HEALTH', 'PLANE', 'FIVE_STARS', 'REGISTERED', '2026-03-10', '2026-03-20', NULL, TRUE),
-(UUID_TO_BIN(UUID()), 'Ski Adventure Alps', 'Skiing and snowboarding fun.', 1700.00, 'SPORTS', 'TRAIN', 'FOUR_STARS', 'REGISTERED', '2026-12-05', '2026-12-15', NULL, TRUE),
-(UUID_TO_BIN(UUID()), 'Leisure in Maldives', 'Sun, sand and relaxation.', 3000.00, 'LEISURE', 'PLANE', 'FIVE_STARS', 'REGISTERED', '2026-04-01', '2026-04-10', NULL, TRUE),
-(UUID_TO_BIN(UUID()), 'Safari Adventure Kenya', 'See lions and elephants.', 2600.00, 'SAFARI', 'PLANE', 'FIVE_STARS', 'REGISTERED', '2026-07-01', '2026-07-12', NULL, TRUE),
-(UUID_TO_BIN(UUID()), 'Wine Tour Spain', 'Enjoy Rioja wines.', 1300.00, 'WINE', 'BUS', 'FOUR_STARS', 'REGISTERED', '2026-05-15', '2026-05-22', NULL, FALSE),
 (UUID_TO_BIN(UUID()), 'Cultural Tour Greece', 'Ancient ruins and islands.', 1600.00, 'CULTURAL', 'SHIP', 'THREE_STARS', 'REGISTERED', '2026-06-20', '2026-06-30', NULL, FALSE),
 (UUID_TO_BIN(UUID()), 'Adventure in New Zealand', 'Bungee and hiking.', 2200.00, 'ADVENTURE', 'PLANE', 'FOUR_STARS', 'REGISTERED', '2026-09-10', '2026-09-25', NULL, TRUE),
 (UUID_TO_BIN(UUID()), 'Eco Tour Amazon', 'Jungle exploration.', 1900.00, 'ECO', 'JEEPS', 'THREE_STARS', 'REGISTERED', '2026-08-01', '2026-08-10', NULL, FALSE),
 (UUID_TO_BIN(UUID()), 'Health Spa Hungary', 'Thermal baths and wellness.', 1250.00, 'HEALTH', 'TRAIN', 'THREE_STARS', 'REGISTERED', '2026-03-20', '2026-03-30', NULL, FALSE),
-(UUID_TO_BIN(UUID()), 'Sports Camp USA', 'Surfing and beach sports.', 2100.00, 'SPORTS', 'PLANE', 'FOUR_STARS', 'REGISTERED', '2026-06-05', '2026-06-15', NULL, TRUE);
+(UUID_TO_BIN(UUID()), 'Sports Camp USA', 'Surfing and beach sports.', 2100.00, 'SPORTS', 'PLANE', 'FOUR_STARS', 'REGISTERED', '2026-06-05', '2026-06-15', NULL, TRUE),
+(UUID_TO_BIN(UUID()), 'Beach Escape', 'Relax on quiet beaches.', 800.00, 'LEISURE', 'BUS', 'ONE_STAR', 'REGISTERED', '2026-07-01', '2026-07-07', NULL, FALSE),
+(UUID_TO_BIN(UUID()), 'Jungle Trek', 'Explore remote jungles.', 950.00, 'ADVENTURE', 'JEEPS', 'TWO_STARS', 'REGISTERED', '2026-08-05', '2026-08-15', NULL, TRUE),
+(UUID_TO_BIN(UUID()), 'City Break', 'Short city getaway.', 600.00, 'CULTURAL', 'TRAIN', 'TWO_STARS', 'REGISTERED', '2026-09-10', '2026-09-12', NULL, FALSE),
+(UUID_TO_BIN(UUID()), 'Mountain Hike', 'Climb scenic mountains.', 700.00, 'SPORTS', 'MINIBUS', 'ONE_STAR', 'REGISTERED', '2026-10-01', '2026-10-07', NULL, TRUE),
+(UUID_TO_BIN(UUID()), 'Wine Escape', 'Taste local wines.', 1100.00, 'WINE', 'PRIVATE_CAR', 'TWO_STARS', 'REGISTERED', '2026-11-05', '2026-11-10', NULL, FALSE);

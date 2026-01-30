@@ -39,6 +39,9 @@
         .pagination-controls { margin-top: 15px; display: flex; justify-content: center; gap: 10px; }
         .pagination-controls button { padding: 6px 14px; border: none; border-radius: 6px; background-color: #2980b9; color: white; font-weight: 600; cursor: pointer; }
         .pagination-controls button:disabled { background-color: #ccc; cursor: default; }
+        .dates { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; vertical-align: middle;
+}
+
     </style>
 </head>
 <body>
@@ -268,7 +271,7 @@
                         <td>${v.tourType}</td>
                         <td>${v.transferType}</td>
                         <td class="stars">${renderStars(v.hotelType)}</td>
-                        <td>${arrival} – ${eviction}</td>
+                        <td class="dates">${arrival} – ${eviction}</td>
                         <td class="hot-cell">${v.isHot ? '<span class="hot-badge">🔥</span>' : ''}</td>
                         <td>
                             <button class="btn btn-success btn-sm" onclick="orderVoucher('${v.id}')">
@@ -279,7 +282,6 @@
                 `;
             });
 
-            // оновлюємо інформацію про сторінки
             currentPage = data.currentPage;
             totalPages = data.totalPages;
             document.getElementById("pageInfo").innerText = `Page ${currentPage+1} of ${totalPages}`;

@@ -48,6 +48,13 @@
         .table th { background-color: #f5f8fc; text-align: center; }
         .table td { vertical-align: middle; }
         .price { font-weight: 600; color: #2c3e50; white-space: nowrap; }
+        .dates {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    vertical-align: middle;
+}
         .hot-badge { color: #e74c3c; font-weight: 700; display: block; }
         .hot-cell { text-align: center; vertical-align: middle; }
         .stars { color: #f1c40f; font-size: 1.1rem; white-space: nowrap; }
@@ -163,32 +170,53 @@
         return '⭐'.repeat(map[hotelType]||0);
     }
 
-    async function loadMyVouchers() {
-        const token = localStorage.getItem('jwt'); if(!token){window.location.href='/login'; return;}
-        try {
-            const response = await fetch('/api/vouchers/my',{headers:{'Authorization':'Bearer '+token}});
-            if(!response.ok) throw new Error('Failed to load your vouchers');
-            const data = await response.json();
-            const vouchers = Array.isArray(data.results)?data.results:[];
-            const tbody = document.getElementById('voucherTableBody'); tbody.innerHTML='';
-            vouchers.sort((a,b)=>b.isHot - a.isHot);
-            vouchers.forEach((v,index)=>{
-                tbody.innerHTML+=`
-                    <tr>
-                        <td>${index+1}</td>
-                        <td>${v.title}</td>
-                        <td>${v.description}</td>
-                        <td class="price">${v.price} $</td>
-                        <td>${v.tourType}</td>
-                        <td>${v.transferType}</td>
-                        <td class="stars">${renderStars(v.hotelType)}</td>
-                        <td>${v.arrivalDate} – ${v.evictionDate}</td>
-                        <td class="hot-cell">${v.isHot ? '<span class="hot-badge">🔥</span>' : ''}</td>
-                    </tr>
-                `;
-            });
-        } catch(err){ showMessage(err.message,'error'); }
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const day = String(date.getDate()).padStart(2,'0');
+        const month = String(date.getMonth()+1).padStart(2,'0');
+        const year = date.getFullYear();
+        return `${day}.${month}.${year}`;
     }
+
+    async function loadMyVouchers() {
+    const token = localStorage.getItem('jwt');
+    if(!token){ window.location.href='/login'; return; }
+
+    try {
+        const response = await fetch('/api/vouchers/my', { headers: { 'Authorization': 'Bearer ' + token } });
+        if(!response.ok) throw new Error('Failed to load your vouchers');
+
+        // Читаємо json **один раз**
+        const result = await response.json();
+        const vouchers = Array.isArray(result.results) ? result.results : [];
+
+        const tbody = document.getElementById('voucherTableBody');
+        tbody.innerHTML = '';
+        vouchers.sort((a,b)=>b.isHot - a.isHot);
+
+        vouchers.forEach((v,index)=>{
+            const arrival = formatDate(v.arrivalDate);
+            const eviction = formatDate(v.evictionDate);
+            tbody.innerHTML+=`
+                <tr>
+                    <td>${index+1}</td>
+                    <td>${v.title}</td>
+                    <td>${v.description}</td>
+                    <td class="price">${v.price} $</td>
+                    <td>${v.tourType}</td>
+                    <td>${v.transferType}</td>
+                    <td class="stars">${renderStars(v.hotelType)}</td>
+                    <td class="dates">${arrival} – ${eviction}</td>
+                    <td class="hot-cell">${v.isHot ? '<span class="hot-badge">🔥</span>' : ''}</td>
+                </tr>
+            `;
+        });
+
+    } catch(err){
+        showMessage(err.message,'error');
+    }
+}
+
 
     window.onload = ()=>{ loadUserInfo(); loadMyVouchers(); };
 </script>
