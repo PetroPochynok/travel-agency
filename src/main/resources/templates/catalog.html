@@ -36,6 +36,9 @@
         .filter-row select, .filter-row input { padding: 5px 10px; border-radius: 6px; border: 1px solid #ccc; min-width: 120px; }
         .filter-row button { background-color: #27ae60; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap; }
         .filter-row button:hover { background-color: #1e8449; }
+        .pagination-controls { margin-top: 15px; display: flex; justify-content: center; gap: 10px; }
+        .pagination-controls button { padding: 6px 14px; border: none; border-radius: 6px; background-color: #2980b9; color: white; font-weight: 600; cursor: pointer; }
+        .pagination-controls button:disabled { background-color: #ccc; cursor: default; }
     </style>
 </head>
 <body>
@@ -124,11 +127,17 @@
             <tbody id="voucherTableBody"></tbody>
         </table>
 
+        <!-- ===== Pagination Controls ===== -->
+        <div class="pagination-controls">
+            <button id="prevPage" onclick="changePage(currentPage-1)" th:text="#{catalog.previous}">Previous</button>
+            <span id="pageInfo" style="align-self:center;"></span>
+            <button id="nextPage" onclick="changePage(currentPage+1)" th:text="#{catalog.next}">Next</button>
+        </div>
+
         <p id="error" class="text-danger mt-2"></p>
     </div>
 </div>
 
-<!-- Локалізований текст кнопки Order -->
 <span id="orderText" th:text="#{catalog.order}" style="display:none;"></span>
 
 <!-- ===== Centered Message Overlay ===== -->
@@ -140,6 +149,10 @@
 </div>
 
 <script th:inline="javascript">
+    let currentPage = 0;
+    let totalPages = 0;
+    let currentFilters = {};
+
     function showMessage(msg, type='success') {
         const overlay = document.getElementById('message-overlay');
         const box = document.getElementById('message-box');
@@ -173,6 +186,7 @@
     }
 
     function applyFilters() {
+        currentPage = 0; // тільки при новому фільтрі
         const tourType = document.getElementById('tourType').value;
         const transferType = document.getElementById('transferType').value;
         const hotelType = document.getElementById('hotelType').value;
@@ -188,7 +202,7 @@
             return;
         }
 
-        const filters = {
+        currentFilters = {
             tourType: tourType || null,
             transferType: transferType || null,
             hotelType: hotelType || null,
@@ -197,7 +211,13 @@
             maxPrice: maxPrice
         };
 
-        loadVouchers(filters);
+        loadVouchers(currentFilters);
+    }
+
+    function changePage(newPage) {
+        if(newPage < 0 || newPage >= totalPages) return;
+        currentPage = newPage;
+        loadVouchers(currentFilters);
     }
 
     async function loadUserInfo() {
@@ -220,12 +240,9 @@
         const orderText = document.getElementById('orderText').innerText;
 
         try {
-            const params = new URLSearchParams();
-            for (const key in filters) {
-                if (filters[key] !== undefined && filters[key] !== null) {
-                    params.append(key, filters[key]);
-                }
-            }
+            const params = new URLSearchParams(filters);
+            params.append("page", currentPage);
+            params.append("size", 10); // або можна зробити змінним через UI
 
             const response = await fetch('/api/vouchers/catalog?' + params.toString(), {
                 headers: { 'Authorization': 'Bearer ' + token }
@@ -242,10 +259,9 @@
             vouchers.forEach((v,index)=>{
                 const arrival = formatDate(v.arrivalDate);
                 const eviction = formatDate(v.evictionDate);
-
                 tbody.innerHTML+=`
                     <tr>
-                        <td>${index+1}</td>
+                        <td>${index+1 + currentPage*10}</td>
                         <td>${v.title}</td>
                         <td>${v.description}</td>
                         <td class="price">${v.price} $</td>
@@ -262,6 +278,14 @@
                     </tr>
                 `;
             });
+
+            // оновлюємо інформацію про сторінки
+            currentPage = data.currentPage;
+            totalPages = data.totalPages;
+            document.getElementById("pageInfo").innerText = `Page ${currentPage+1} of ${totalPages}`;
+            document.getElementById("prevPage").disabled = currentPage===0;
+            document.getElementById("nextPage").disabled = currentPage+1>=totalPages;
+
         } catch(err){
             showMessage(err.message,'error');
         }
@@ -280,7 +304,7 @@
                 return;
             }
             showMessage([[#{catalog.orderSuccess}]],'success');
-            loadVouchers(); loadUserInfo();
+            loadVouchers(currentFilters); loadUserInfo();
         } catch(err){ showMessage(err.message,'error'); }
     }
 

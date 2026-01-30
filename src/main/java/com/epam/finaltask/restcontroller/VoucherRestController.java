@@ -124,7 +124,7 @@ public class VoucherRestController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> catalog(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "price") String sortBy,
             @RequestParam(defaultValue = "desc") String direction,
 
