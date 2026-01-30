@@ -15,12 +15,6 @@ public interface VoucherService {
     VoucherDTO update(String id, VoucherDTO voucherDTO);
     void delete(String voucherId);
     VoucherDTO changeHotStatus(String id, VoucherDTO voucherDTO);
-
-    List<VoucherDTO> findAllByTourType(TourType tourType, int page, int size, String sortBy);
-    List<VoucherDTO> findAllByTransferType(TransferType transferType, int page, int size, String sortBy);
-    List<VoucherDTO> findAllByPrice(Double price, int page, int size, String sortBy);
-    List<VoucherDTO> findAllByHotelType(HotelType hotelType, int page, int size, String sortBy);
-    List<VoucherDTO> findCatalog(int page, int size, String sortBy);
     List<VoucherDTO> findMyVouchers(String username);
     List<VoucherDTO> findAll();
     Page<VoucherDTO> findCatalogFiltered(
