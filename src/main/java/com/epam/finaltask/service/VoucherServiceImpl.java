@@ -177,7 +177,8 @@ public class VoucherServiceImpl implements VoucherService {
             Double maxPrice,
             Pageable pageable
     ) {
-        Specification<Voucher> spec = Specification.where(null);
+        Specification<Voucher> spec = Specification.where((root, query, cb) ->
+                cb.equal(root.get("status"), VoucherStatus.REGISTERED));
 
         if (description != null && !description.isBlank()) {
             spec = spec.and((root, query, cb) ->
