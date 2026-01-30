@@ -189,33 +189,37 @@
     }
 
     function applyFilters() {
-        currentPage = 0; // тільки при новому фільтрі
-        const tourType = document.getElementById('tourType').value;
-        const transferType = document.getElementById('transferType').value;
-        const hotelType = document.getElementById('hotelType').value;
-        const description = document.getElementById('description').value;
-        const minPriceInput = document.getElementById('minPrice').value;
-        const maxPriceInput = document.getElementById('maxPrice').value;
+    currentPage = 0;
+    const tourTypeVal = document.getElementById('tourType').value;
+    const transferTypeVal = document.getElementById('transferType').value;
+    const hotelTypeVal = document.getElementById('hotelType').value;
+    const descriptionVal = document.getElementById('description').value;
+    const minPriceInput = document.getElementById('minPrice').value;
+    const maxPriceInput = document.getElementById('maxPrice').value;
 
-        const minPrice = minPriceInput ? parseFloat(minPriceInput) : null;
-        const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : null;
+    const minPrice = minPriceInput ? parseFloat(minPriceInput) : null;
+    const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : null;
 
-        if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) {
-            showMessage([[#{error.minPriceGreaterThanMax}]], 'error');
-            return;
-        }
-
-        currentFilters = {
-            tourType: tourType || null,
-            transferType: transferType || null,
-            hotelType: hotelType || null,
-            description: description || null,
-            minPrice: minPrice,
-            maxPrice: maxPrice
-        };
-
-        loadVouchers(currentFilters);
+    if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) {
+        showMessage([[#{error.minPriceGreaterThanMax}]], 'error');
+        return;
     }
+
+    currentFilters = {
+        tourType: tourTypeVal || null,
+        transferType: transferTypeVal || null,
+        hotelType: hotelTypeVal || null,
+        description: descriptionVal || null,
+        minPrice: minPrice,
+        maxPrice: maxPrice
+    };
+
+    Object.keys(currentFilters).forEach(key => {
+        if (currentFilters[key] === null) delete currentFilters[key];
+    });
+
+    loadVouchers(currentFilters);
+}
 
     function changePage(newPage) {
         if(newPage < 0 || newPage >= totalPages) return;
