@@ -6,6 +6,8 @@ import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.model.HotelType;
 import com.epam.finaltask.model.TourType;
 import com.epam.finaltask.model.TransferType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface VoucherService {
     VoucherDTO create(VoucherDTO voucherDTO);
@@ -19,7 +21,15 @@ public interface VoucherService {
     List<VoucherDTO> findAllByPrice(Double price, int page, int size, String sortBy);
     List<VoucherDTO> findAllByHotelType(HotelType hotelType, int page, int size, String sortBy);
     List<VoucherDTO> findCatalog(int page, int size, String sortBy);
-    List<VoucherDTO> findCatalog();
     List<VoucherDTO> findMyVouchers(String username);
     List<VoucherDTO> findAll();
+    Page<VoucherDTO> findCatalogFiltered(
+            TourType tourType,
+            TransferType transferType,
+            HotelType hotelType,
+            String description,
+            Double minPrice,
+            Double maxPrice,
+            Pageable pageable
+    );
 }

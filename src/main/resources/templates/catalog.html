@@ -32,6 +32,10 @@
         #message-box.error { border-left: 6px solid #e74c3c; }
         #message-box button { margin-top: 15px; padding: 6px 14px; border: none; border-radius: 6px; background-color: #2980b9; color: white; font-weight: 600; cursor: pointer; }
         #message-box button:hover { background-color: #1c5980; }
+        .filter-row { margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; flex-wrap: nowrap; overflow-x: auto; }
+        .filter-row select, .filter-row input { padding: 5px 10px; border-radius: 6px; border: 1px solid #ccc; min-width: 120px; }
+        .filter-row button { background-color: #27ae60; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+        .filter-row button:hover { background-color: #1e8449; }
     </style>
 </head>
 <body>
@@ -59,6 +63,49 @@
 <div class="container">
     <div class="catalog-card">
         <h3 class="mb-4" th:text="#{catalog.title}">Voucher Catalog</h3>
+
+        <!-- ===== Filters in 1 row ===== -->
+        <div class="filter-row">
+            <select id="tourType">
+                <option value="">All Tours</option>
+                <option value="HEALTH">HEALTH</option>
+                <option value="SPORTS">SPORTS</option>
+                <option value="LEISURE">LEISURE</option>
+                <option value="SAFARI">SAFARI</option>
+                <option value="WINE">WINE</option>
+                <option value="ECO">ECO</option>
+                <option value="ADVENTURE">ADVENTURE</option>
+                <option value="CULTURAL">CULTURAL</option>
+            </select>
+
+            <select id="transferType">
+                <option value="">All Transfers</option>
+                <option value="BUS">BUS</option>
+                <option value="TRAIN">TRAIN</option>
+                <option value="PLANE">PLANE</option>
+                <option value="SHIP">SHIP</option>
+                <option value="PRIVATE_CAR">PRIVATE_CAR</option>
+                <option value="JEEPS">JEEPS</option>
+                <option value="MINIBUS">MINIBUS</option>
+                <option value="ELECTRICAL_CARS">ELECTRICAL_CARS</option>
+            </select>
+
+            <select id="hotelType">
+                <option value="">All Hotels</option>
+                <option value="ONE_STAR">ONE_STAR</option>
+                <option value="TWO_STARS">TWO_STARS</option>
+                <option value="THREE_STARS">THREE_STARS</option>
+                <option value="FOUR_STARS">FOUR_STARS</option>
+                <option value="FIVE_STARS">FIVE_STARS</option>
+            </select>
+
+            <input type="text" id="description" th:placeholder="#{catalog.searchDescription}">
+            <input type="number" id="minPrice" th:placeholder="#{catalog.minPrice}" min="0">
+            <input type="number" id="maxPrice" th:placeholder="#{catalog.maxPrice}" min="0">
+            <button th:text="#{catalog.search}" onclick="applyFilters()"></button>
+        </div>
+
+        <!-- ===== Voucher Table ===== -->
         <table class="table table-bordered">
             <thead>
             <tr>
@@ -71,14 +118,18 @@
                 <th th:text="#{catalog.hotel}">Hotel</th>
                 <th th:text="#{catalog.dates}">Dates</th>
                 <th th:text="#{catalog.hot}">HOT</th>
-                <th th:text="#{catalog.order}">Order</th>
+                <th>Order</th>
             </tr>
             </thead>
             <tbody id="voucherTableBody"></tbody>
         </table>
+
         <p id="error" class="text-danger mt-2"></p>
     </div>
 </div>
+
+<!-- Локалізований текст кнопки Order -->
+<span id="orderText" th:text="#{catalog.order}" style="display:none;"></span>
 
 <!-- ===== Centered Message Overlay ===== -->
 <div id="message-overlay">
@@ -113,6 +164,42 @@
         return '⭐'.repeat(map[hotelType]||0);
     }
 
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const day = String(date.getDate()).padStart(2,'0');
+        const month = String(date.getMonth()+1).padStart(2,'0');
+        const year = date.getFullYear();
+        return `${day}.${month}.${year}`;
+    }
+
+    function applyFilters() {
+        const tourType = document.getElementById('tourType').value;
+        const transferType = document.getElementById('transferType').value;
+        const hotelType = document.getElementById('hotelType').value;
+        const description = document.getElementById('description').value;
+        const minPriceInput = document.getElementById('minPrice').value;
+        const maxPriceInput = document.getElementById('maxPrice').value;
+
+        const minPrice = minPriceInput ? parseFloat(minPriceInput) : null;
+        const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : null;
+
+        if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) {
+            showMessage([[#{error.minPriceGreaterThanMax}]], 'error');
+            return;
+        }
+
+        const filters = {
+            tourType: tourType || null,
+            transferType: transferType || null,
+            hotelType: hotelType || null,
+            description: description || null,
+            minPrice: minPrice,
+            maxPrice: maxPrice
+        };
+
+        loadVouchers(filters);
+    }
+
     async function loadUserInfo() {
         const token = localStorage.getItem('jwt'); if(!token) return;
         try {
@@ -126,16 +213,36 @@
         } catch(e){ console.warn('Failed to load user info'); }
     }
 
-    async function loadVouchers() {
-        const token = localStorage.getItem('jwt'); if(!token){window.location.href='/login'; return;}
+    async function loadVouchers(filters={}) {
+        const token = localStorage.getItem('jwt');
+        if(!token){ window.location.href='/login'; return; }
+
+        const orderText = document.getElementById('orderText').innerText;
+
         try {
-            const response = await fetch('/api/vouchers/catalog',{headers:{'Authorization':'Bearer '+token}});
-            if(!response.ok) throw new Error([[#{catalog.loadError}]]);
+            const params = new URLSearchParams();
+            for (const key in filters) {
+                if (filters[key] !== undefined && filters[key] !== null) {
+                    params.append(key, filters[key]);
+                }
+            }
+
+            const response = await fetch('/api/vouchers/catalog?' + params.toString(), {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (!response.ok) throw new Error([[#{catalog.loadError}]]);
+
             const data = await response.json();
-            const vouchers = Array.isArray(data.vouchers)?data.vouchers:[];
-            const tbody = document.getElementById('voucherTableBody'); tbody.innerHTML='';
+            const vouchers = Array.isArray(data.vouchers) ? data.vouchers : [];
+            const tbody = document.getElementById('voucherTableBody');
+            tbody.innerHTML = '';
             vouchers.sort((a,b)=>b.isHot - a.isHot);
+
             vouchers.forEach((v,index)=>{
+                const arrival = formatDate(v.arrivalDate);
+                const eviction = formatDate(v.evictionDate);
+
                 tbody.innerHTML+=`
                     <tr>
                         <td>${index+1}</td>
@@ -145,14 +252,19 @@
                         <td>${v.tourType}</td>
                         <td>${v.transferType}</td>
                         <td class="stars">${renderStars(v.hotelType)}</td>
-                        <td>${v.arrivalDate} – ${v.evictionDate}</td>
+                        <td>${arrival} – ${eviction}</td>
                         <td class="hot-cell">${v.isHot ? '<span class="hot-badge">🔥</span>' : ''}</td>
-                        <td><button class="btn btn-success btn-sm" onclick="orderVoucher('${v.id}')"
-                            th:text="#{catalog.order}">Order</button></td>
+                        <td>
+                            <button class="btn btn-success btn-sm" onclick="orderVoucher('${v.id}')">
+                                ${orderText}
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
-        } catch(err){ showMessage(err.message,'error'); }
+        } catch(err){
+            showMessage(err.message,'error');
+        }
     }
 
     async function orderVoucher(voucherId){

@@ -11,6 +11,10 @@ import com.epam.finaltask.repository.UserRepository;
 import com.epam.finaltask.service.VoucherService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -118,13 +122,42 @@ public class VoucherRestController {
 
     @GetMapping("/catalog")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, Object>> catalog(@AuthenticationPrincipal UserDetails userDetails) {
-        List<VoucherDTO> vouchers = voucherService.findCatalog();
-        User user = userRepository.findUserByUsername(userDetails.getUsername()).orElseThrow();
+    public ResponseEntity<Map<String, Object>> catalog(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "price") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction,
+
+            @RequestParam(required = false) TourType tourType,
+            @RequestParam(required = false) TransferType transferType,
+            @RequestParam(required = false) HotelType hotelType,
+
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice
+    ) {
+        Sort sort = direction.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<VoucherDTO> voucherPage =
+                voucherService.findCatalogFiltered(
+                        tourType,
+                        transferType,
+                        hotelType,
+                        description,
+                        minPrice,
+                        maxPrice,
+                        pageable
+                );
 
         Map<String, Object> response = new HashMap<>();
-        response.put("vouchers", vouchers);
-        response.put("balance", user.getBalance());
+        response.put("vouchers", voucherPage.getContent());
+        response.put("currentPage", voucherPage.getNumber());
+        response.put("totalPages", voucherPage.getTotalPages());
+        response.put("totalElements", voucherPage.getTotalElements());
 
         return ResponseEntity.ok(response);
     }
@@ -140,38 +173,6 @@ public class VoucherRestController {
         response.setResults(vouchers);
         response.setStatusCode("OK");
         response.setStatusMessage("My vouchers retrieved successfully");
-
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<VoucherDTO>>> searchVouchers(
-            @RequestParam(required = false) TourType tourType,
-            @RequestParam(required = false) TransferType transferType,
-            @RequestParam(required = false) HotelType hotelType,
-            @RequestParam(required = false) Double price,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "price") String sortBy) {
-
-        List<VoucherDTO> vouchers;
-
-        if (tourType != null) {
-            vouchers = voucherService.findAllByTourType(tourType, page, size, sortBy);
-        } else if (transferType != null) {
-            vouchers = voucherService.findAllByTransferType(transferType, page, size, sortBy);
-        } else if (hotelType != null) {
-            vouchers = voucherService.findAllByHotelType(hotelType, page, size, sortBy);
-        } else if (price != null) {
-            vouchers = voucherService.findAllByPrice(price, page, size, sortBy);
-        } else {
-            vouchers = voucherService.findCatalog();
-        }
-
-        ApiResponse<List<VoucherDTO>> response = new ApiResponse<>();
-        response.setResults(vouchers);
-        response.setStatusCode("OK");
-        response.setStatusMessage("Filtered vouchers retrieved successfully");
 
         return ResponseEntity.ok(response);
     }

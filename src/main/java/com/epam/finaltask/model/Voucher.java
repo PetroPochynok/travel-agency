@@ -10,8 +10,6 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "vouchers")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Voucher {
 
     @Id

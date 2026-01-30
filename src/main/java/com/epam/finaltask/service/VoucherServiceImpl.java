@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -36,9 +37,15 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public VoucherDTO create(VoucherDTO voucherDTO) {
         Voucher voucher = voucherMapper.toVoucher(voucherDTO);
+
         if (voucher.getStatus() == null) {
             voucher.setStatus(VoucherStatus.REGISTERED);
         }
+
+        if (voucher.getIsHot() == null) {
+            voucher.setIsHot(false);
+        }
+
         Voucher savedVoucher = voucherRepository.save(voucher);
         return voucherMapper.toVoucherDTO(savedVoucher);
     }
@@ -154,16 +161,45 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
-    public List<VoucherDTO> findCatalog() {
-        return findCatalog(0, Integer.MAX_VALUE, "isHot");
-    }
-
-    @Override
     public List<VoucherDTO> findAll() {
         return voucherRepository.findAll()
                 .stream()
                 .map(voucherMapper::toVoucherDTO)
                 .toList();
+    }
+
+    public Page<VoucherDTO> findCatalogFiltered(
+            TourType tourType,
+            TransferType transferType,
+            HotelType hotelType,
+            String description,
+            Double minPrice,
+            Double maxPrice,
+            Pageable pageable
+    ) {
+        Specification<Voucher> spec = Specification.where(null);
+
+        if (description != null && !description.isBlank()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("description")), "%" + description.toLowerCase() + "%"));
+        }
+        if (minPrice != null && maxPrice != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.between(root.get("price"), minPrice, maxPrice));
+        }
+        if (tourType != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("tourType"), tourType));
+        }
+        if (transferType != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("transferType"), transferType));
+        }
+        if (hotelType != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("hotelType"), hotelType));
+        }
+
+        Page<Voucher> page = voucherRepository.findAll(spec, pageable);
+
+        return page.map(voucherMapper::toVoucherDTO);
     }
 
 }
