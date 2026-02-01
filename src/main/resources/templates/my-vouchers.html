@@ -9,79 +9,37 @@
 
     <style>
         body { background-color: #eef4fb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
-        /* Top bar */
-        .top-bar {
-            background: #ffffff;
-            padding: 15px 30px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .top-bar { background: #ffffff; padding: 15px 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
         .top-bar h4 { margin: 0; color: #2c3e50; font-weight: 600; }
         .top-right { display: flex; align-items: center; gap: 15px; }
         .user-name { font-weight: 600; color: #2c3e50; }
         .balance { font-weight: 600; color: #27ae60; }
-        .btn-logout, .btn-back-catalog {
-            padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none;
-        }
+        .btn-logout, .btn-back-catalog { padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; }
         .btn-logout { background-color: #e74c3c; color: white; }
         .btn-logout:hover { background-color: #c0392b; }
         .btn-back-catalog { background-color: #2980b9; color: white; }
         .btn-back-catalog:hover { background-color: #1c5980; }
-
-        /* Language buttons */
         .lang-switch { text-align: center; margin: 15px 0; }
-        .lang-switch a {
-            margin: 0 5px; padding: 5px 10px; border-radius: 5px;
-            background-color: #27ae60; color: white; font-weight: 600;
-            text-decoration: none; font-size: 0.85rem;
-        }
+        .lang-switch a { margin: 0 5px; padding: 5px 10px; border-radius: 5px; background-color: #27ae60; color: white; font-weight: 600; text-decoration: none; font-size: 0.85rem; }
         .lang-switch a:hover { background-color: #1e8449; }
-
-        /* Catalog card */
-        .catalog-card {
-            background: #ffffff; margin-top: 10px; padding: 25px;
-            border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-        }
+        .catalog-card { background: #ffffff; margin-top: 10px; padding: 25px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
         .table th { background-color: #f5f8fc; text-align: center; }
         .table td { vertical-align: middle; }
         .price { font-weight: 600; color: #2c3e50; white-space: nowrap; }
-        .dates {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    vertical-align: middle;
-}
+        .dates { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; vertical-align: middle; }
         .hot-badge { color: #e74c3c; font-weight: 700; display: block; }
         .hot-cell { text-align: center; vertical-align: middle; }
         .stars { color: #f1c40f; font-size: 1.1rem; white-space: nowrap; }
-
-        /* Centered messages */
-        #message-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center;
-            z-index: 9999;
-        }
-        #message-box {
-            background: white; padding: 30px 40px; border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3); text-align: center; max-width: 400px;
-            font-size: 1.1rem;
-        }
+        #message-overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        #message-box { background: white; padding: 30px 40px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); text-align: center; max-width: 400px; font-size: 1.1rem; }
         #message-box.success { border-left: 6px solid #27ae60; }
         #message-box.error { border-left: 6px solid #e74c3c; }
-        #message-box button {
-            margin-top: 15px; padding: 6px 14px; border: none; border-radius: 6px;
-            background-color: #2980b9; color: white; font-weight: 600; cursor: pointer;
-        }
+        #message-box button { margin-top: 15px; padding: 6px 14px; border: none; border-radius: 6px; background-color: #2980b9; color: white; font-weight: 600; cursor: pointer; }
         #message-box button:hover { background-color: #1c5980; }
     </style>
 </head>
 <body>
 
-<!-- Top bar -->
 <div class="top-bar">
     <h4>🌍 Travel Agency</h4>
     <div class="top-right">
@@ -92,7 +50,6 @@
     </div>
 </div>
 
-<!-- Language buttons -->
 <div class="lang-switch">
     <a th:href="@{/catalog/my(lang='en')}">EN</a>
     <a th:href="@{/catalog/my(lang='uk')}">UA</a>
@@ -124,7 +81,6 @@
     </div>
 </div>
 
-<!-- Message overlay -->
 <div id="message-overlay">
     <div id="message-box">
         <div id="message-text"></div>
