@@ -185,6 +185,11 @@
     }
     function closeMessage(){ document.getElementById('message-overlay').style.display='none'; }
     async function logout(){
+        try {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+        } catch (e) {
+            // ignore
+        }
         localStorage.removeItem('jwt');
         showMessage([[#{catalog.logoutSuccess}]], 'success');
         setTimeout(()=>window.location.href='/login',1000);
@@ -213,9 +218,10 @@
 
     async function loadUserInfo(){
     const token=localStorage.getItem('jwt');
-    if(!token) return;
     try{
-        const r=await fetch('/api/users/me',{headers:{'Authorization':'Bearer '+token}});
+        const headers = {};
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        const r=await fetch('/api/users/me',{headers, credentials: 'same-origin'});
         if(!r.ok) return;
         const u=await r.json();
         if(u && u.balance!==undefined){
@@ -230,15 +236,14 @@
 
     async function loadVouchers(filters = {}) {
     const token = localStorage.getItem('jwt');
-    if (!token) {
-        window.location.href = '/login';
-        return;
-    }
+    // allow anonymous viewing of catalog, but if token missing we don't pre-check here
     try {
         const params = new URLSearchParams(filters);
         params.append("page", currentPage);
         params.append("size", 10);
-        const resp = await fetch('/api/vouchers/catalog?' + params.toString(), { headers: { 'Authorization': 'Bearer ' + token } });
+        const headers = {};
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        const resp = await fetch('/api/vouchers/catalog?' + params.toString(), { headers, credentials: 'same-origin' });
         if (!resp.ok) throw new Error([[#{catalog.loadError}]]);
         const data = await resp.json();
         const vouchers = Array.isArray(data.vouchers) ? data.vouchers : [];
@@ -323,7 +328,7 @@
     }
 }
 
-    function orderVoucher(voucherId, btn) {
+    async function orderVoucher(voucherId, btn) {
         const overlay = document.getElementById('confirm-overlay');
         const confirmText = document.getElementById('confirm-text');
         const yesBtn = document.getElementById('confirm-yes');
@@ -339,12 +344,15 @@
         }
         async function onYes() {
             cleanUp();
-            const token = localStorage.getItem('jwt');
-            if (!token) return;
             try {
+                const headers = {};
+                const token = localStorage.getItem('jwt');
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+
                 const response = await fetch(`/api/vouchers/order/${voucherId}`, {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers,
+                    credentials: 'same-origin'
                 });
 
                 const data = await response.json();
@@ -377,7 +385,7 @@
 
     function changeVoucher(voucherId) {
     window.location.href = `/admin/vouchers/${voucherId}/edit`;
-    }
+}
 
     function deleteVoucher(voucherId) {
         const overlay = document.getElementById('confirm-overlay');
@@ -396,12 +404,15 @@
 
         async function onYes() {
             cleanUp();
-            const token = localStorage.getItem('jwt');
-            if (!token) return;
             try {
+                const headers = {};
+                const token = localStorage.getItem('jwt');
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+
                 const response = await fetch(`/api/vouchers/${voucherId}`, {
                     method: 'DELETE',
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers,
+                    credentials: 'same-origin'
                 });
 
                 if (!response.ok) {
@@ -426,16 +437,15 @@
     }
 
     async function toggleHotStatus(voucherId, currentStatus) {
-    const token = localStorage.getItem('jwt');
-    if(!token) return;
-
     try {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = localStorage.getItem('jwt');
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
         const response = await fetch(`/api/vouchers/${voucherId}/status`, {
             method: 'PATCH',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            },
+            headers: headers,
+            credentials: 'same-origin',
             body: JSON.stringify({ isHot: !currentStatus })
         });
 

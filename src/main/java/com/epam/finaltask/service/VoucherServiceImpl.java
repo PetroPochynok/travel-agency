@@ -1,6 +1,7 @@
 package com.epam.finaltask.service;
 
 import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.exception.InvalidDatesException;
 import com.epam.finaltask.exception.InvalidUuidException;
 import com.epam.finaltask.exception.VoucherNotFoundException;
 import com.epam.finaltask.exception.VoucherOrderException;
@@ -16,6 +17,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -89,6 +91,14 @@ public class VoucherServiceImpl implements VoucherService {
 
         Voucher existingVoucher = voucherRepository.findById(uuid)
                 .orElseThrow(() -> new VoucherNotFoundException(id));
+
+        LocalDate arrival = voucherDTO.getArrivalDate();
+        LocalDate eviction = voucherDTO.getEvictionDate();
+        if (arrival != null && eviction != null) {
+            if (!eviction.isAfter(arrival)) {
+                throw new InvalidDatesException("Eviction date must be after arrival date");
+            }
+        }
 
         if (voucherDTO.getTitle() != null)
             existingVoucher.setTitle(voucherDTO.getTitle());

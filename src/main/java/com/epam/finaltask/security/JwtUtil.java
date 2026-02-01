@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class JwtUtil {
 
     private final Key key;
+    @Getter
     private final long jwtExpirationInMs;
 
     public JwtUtil(
@@ -67,4 +69,5 @@ public class JwtUtil {
         Date expiration = extractClaim(token, Claims::getExpiration);
         return expiration.before(new Date());
     }
+
 }

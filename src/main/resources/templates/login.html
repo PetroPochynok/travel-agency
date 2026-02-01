@@ -172,13 +172,14 @@
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
+                credentials: 'same-origin',
                 body: JSON.stringify({username, password})
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                localStorage.setItem('jwt', data.token);
+                if (data.token) localStorage.setItem('jwt', data.token);
                 window.location.href = '/catalog';
             } else {
                 errorEl.innerText = data.message || 'Invalid credentials';

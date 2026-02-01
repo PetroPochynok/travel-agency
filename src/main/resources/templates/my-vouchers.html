@@ -101,19 +101,22 @@
     function closeMessage() { document.getElementById('message-overlay').style.display='none'; }
 
     async function loadUserInfo() {
-        const token = localStorage.getItem('jwt'); if(!token) return;
+        const token = localStorage.getItem('jwt');
         try {
-            const response = await fetch('/api/users/me',{headers:{'Authorization':'Bearer '+token}});
-            if(!response.ok) return;
+            const headers = {};
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            const response = await fetch('/api/users/me', { headers, credentials: 'same-origin' });
+            if (!response.ok) return;
             const user = await response.json();
-            if(user) {
+            if (user) {
                 document.getElementById('userName').innerText = `${user.firstName} ${user.lastName}`;
                 document.getElementById('balance').innerText = `${user.balance.toFixed(2)} $`;
             }
-        } catch(e){ console.warn('Failed to load user info'); }
+        } catch (e) { console.warn('Failed to load user info'); }
     }
 
     function logout() {
+        try { fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch(e){}
         localStorage.removeItem('jwt');
         showMessage([[#{catalog.logoutSuccess}]], 'success');
         setTimeout(()=>window.location.href='/login',1000);
@@ -136,13 +139,15 @@
 
     async function loadMyVouchers() {
     const token = localStorage.getItem('jwt');
-    if(!token){ window.location.href='/login'; return; }
 
     try {
-        const response = await fetch('/api/vouchers/my', { headers: { 'Authorization': 'Bearer ' + token } });
+        const headers = {};
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const response = await fetch('/api/vouchers/my', { headers, credentials: 'same-origin' });
+        if (response.status === 401) { window.location.href = '/login'; return; }
         if(!response.ok) throw new Error('Failed to load your vouchers');
 
-        // Читаємо json **один раз**
         const result = await response.json();
         const vouchers = Array.isArray(result.results) ? result.results : [];
 

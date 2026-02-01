@@ -25,6 +25,13 @@ public class GlobalExceptionHandler {
                 .body(new ApiError(ex.getMessage(), LocalDateTime.now()));
     }
 
+    @ExceptionHandler(InvalidDatesException.class)
+    public ResponseEntity<ApiError> handleInvalidDates(InvalidDatesException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiError(ex.getMessage(), LocalDateTime.now()));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity
