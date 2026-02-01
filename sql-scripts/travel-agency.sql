@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS vouchers (
 INSERT INTO users (id, username, first_name, last_name, email, password, role, phone_number, balance, active) VALUES
 (UUID_TO_BIN(UUID()), 'admin', 'Liam', 'Hawthorne', 'admin@epam.com', '$2a$10$Q.0b1Vz1WrMLXQPCrCDvVOd5FSuyVIqfPTaxhyfa/OK2NwBC5THeC', 'ADMIN', '+380671234567', 10000.00, TRUE),
 (UUID_TO_BIN(UUID()), 'manager','Zara', 'Montague', 'manager@epam.com', '$2a$10$Q.0b1Vz1WrMLXQPCrCDvVOd5FSuyVIqfPTaxhyfa/OK2NwBC5THeC', 'MANAGER', '+380509876543', 5000.00, TRUE),
-(UUID_TO_BIN(UUID()), 'user1', 'Ethan', 'Calder', 'user1@epam.com', '$2a$10$Q.0b1Vz1WrMLXQPCrCDvVOd5FSuyVIqfPTaxhyfa/OK2NwBC5THeC', 'CUSTOMER', '+380684321987', 1500.00, TRUE);
+(UUID_TO_BIN(UUID()), 'customer', 'Ethan', 'Calder', 'customer@epam.com', '$2a$10$Q.0b1Vz1WrMLXQPCrCDvVOd5FSuyVIqfPTaxhyfa/OK2NwBC5THeC', 'CUSTOMER', '+380684321987', 1500.00, TRUE);
 
 INSERT INTO vouchers (
     id, title, description, price, tour_type, transfer_type,

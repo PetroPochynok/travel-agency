@@ -1,6 +1,7 @@
 package com.epam.finaltask.service;
 
 import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.exception.InvalidUuidException;
 import com.epam.finaltask.exception.VoucherNotFoundException;
 import com.epam.finaltask.exception.VoucherOrderException;
 import com.epam.finaltask.mapper.VoucherMapper;
@@ -78,8 +79,16 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public VoucherDTO update(String id, VoucherDTO voucherDTO) {
-        Voucher existingVoucher = voucherRepository.findById(UUID.fromString(id))
-                .orElseThrow(() -> new VoucherNotFoundException("Voucher not found"));
+
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidUuidException(id);
+        }
+
+        Voucher existingVoucher = voucherRepository.findById(uuid)
+                .orElseThrow(() -> new VoucherNotFoundException(id));
 
         if (voucherDTO.getTitle() != null)
             existingVoucher.setTitle(voucherDTO.getTitle());
@@ -98,7 +107,9 @@ public class VoucherServiceImpl implements VoucherService {
         if (voucherDTO.getEvictionDate() != null)
             existingVoucher.setEvictionDate(voucherDTO.getEvictionDate());
 
-        return voucherMapper.toVoucherDTO(voucherRepository.save(existingVoucher));
+        return voucherMapper.toVoucherDTO(
+                voucherRepository.save(existingVoucher)
+        );
     }
 
     @Override
@@ -113,6 +124,21 @@ public class VoucherServiceImpl implements VoucherService {
 
         voucher.setIsHot((voucherDTO.getIsHot()));
         return voucherMapper.toVoucherDTO(voucherRepository.save(voucher));
+    }
+
+    @Override
+    public VoucherDTO findById(String id) {
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidUuidException(id);
+        }
+
+        Voucher voucher = voucherRepository.findById(uuid)
+                .orElseThrow(() -> new VoucherNotFoundException("Voucher not found"));
+
+        return voucherMapper.toVoucherDTO(voucher);
     }
 
 

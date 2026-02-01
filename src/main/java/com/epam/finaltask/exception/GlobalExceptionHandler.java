@@ -16,7 +16,8 @@ public class GlobalExceptionHandler {
             VoucherNotFoundException.class,
             UserNotFoundException.class,
             UsernameAlreadyExistsException.class,
-            VoucherOrderException.class
+            VoucherOrderException.class,
+            InvalidUuidException.class
     })
     public ResponseEntity<ApiError> handleBusinessExceptions(RuntimeException ex) {
         return ResponseEntity

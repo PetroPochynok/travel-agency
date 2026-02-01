@@ -31,7 +31,10 @@ public class UserRestController {
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
         dto.setBalance(user.getBalance());
+        if (user.getRole() != null) {
+            dto.setRole(user.getRole().name());
+        }
         return ResponseEntity.ok(dto);
     }
-	
+
 }
