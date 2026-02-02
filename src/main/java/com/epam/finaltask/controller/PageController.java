@@ -53,4 +53,10 @@ public class PageController {
     public String adminCanceledPage() {
         return "admin-canceled";
     }
+
+    @GetMapping("/admin/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String adminUsersPage() {
+        return "admin-users";
+    }
 }
