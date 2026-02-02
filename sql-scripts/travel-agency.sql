@@ -25,11 +25,13 @@ CREATE TABLE IF NOT EXISTS vouchers (
     tour_type       ENUM('HEALTH','SPORTS','LEISURE','SAFARI','WINE','ECO','ADVENTURE','CULTURAL') NOT NULL,
     transfer_type   ENUM('BUS','TRAIN','PLANE','SHIP','PRIVATE_CAR','JEEPS','MINIBUS','ELECTRICAL_CARS') NOT NULL,
     hotel_type      ENUM('ONE_STAR','TWO_STARS','THREE_STARS','FOUR_STARS','FIVE_STARS') NOT NULL,
-    status          ENUM('REGISTERED','PAID','CANCELED')                 NOT NULL DEFAULT 'REGISTERED',
+    status          ENUM('REGISTERED','PAID','CANCELLATION_REQUESTED','CANCELED')                 NOT NULL DEFAULT 'REGISTERED',
     arrival_date    DATE                                                NOT NULL,
     eviction_date   DATE                                                NOT NULL,
     user_id         BINARY(16),
     is_hot          BOOLEAN                                             NOT NULL DEFAULT FALSE,
+    cancellation_reason TEXT,
+    cancellation_requested_at DATETIME,
     CONSTRAINT PK_vouchers PRIMARY KEY (id),
     CONSTRAINT FK_vouchers_users FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );

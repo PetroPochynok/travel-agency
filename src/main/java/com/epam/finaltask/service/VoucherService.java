@@ -33,4 +33,6 @@ public interface VoucherService {
             Double maxPrice,
             Pageable pageable
     );
+    VoucherDTO requestCancellation(String id, String username, String reason);
+    VoucherDTO decideCancellation(String id, boolean approved, String adminUsername);
 }

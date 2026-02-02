@@ -36,6 +36,8 @@
         #message-box.error { border-left: 6px solid #e74c3c; }
         #message-box button { margin-top: 15px; padding: 6px 14px; border: none; border-radius: 6px; background-color: #2980b9; color: white; font-weight: 600; cursor: pointer; }
         #message-box button:hover { background-color: #1c5980; }
+        .btn-cancel { background-color: #e67e22; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-cancel:hover { background-color: #d35400; }
     </style>
 </head>
 <body>
@@ -58,6 +60,12 @@
     <a th:href="@{/catalog/my(lang='es')}">ES</a>
 </div>
 
+<span id="lblActions" th:text="#{myVouchers.actions}" hidden>Actions</span>
+<span id="lblCancel" th:text="#{myVouchers.cancel}" hidden>Cancel</span>
+<span id="lblCancelConfirm" th:text="#{myVouchers.cancelConfirm}" hidden>Request cancellation?</span>
+<span id="lblCancelRequested" th:text="#{myVouchers.cancelRequested}" hidden>Cancellation requested</span>
+<span id="lblCancelReasonPlaceholder" th:text="#{myVouchers.cancelReasonPlaceholder}" hidden>Optional reason</span>
+
 <div class="container">
     <div class="catalog-card">
         <h3 class="mb-4" th:text="#{myVouchers.title}">My Vouchers</h3>
@@ -73,6 +81,7 @@
                 <th th:text="#{catalog.hotel}">Hotel</th>
                 <th th:text="#{catalog.dates}">Dates</th>
                 <th th:text="#{catalog.hot}">HOT</th>
+                <th id="actionsHeader" th:text="#{myVouchers.actions}">Actions</th>
             </tr>
             </thead>
             <tbody id="voucherTableBody"></tbody>
@@ -88,7 +97,27 @@
     </div>
 </div>
 
+<!-- Cancel modal -->
+<div id="cancel-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:10000;">
+    <div style="background:white; padding:20px 24px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.3); max-width:420px; width:100%;">
+        <div id="cancel-text" style="font-size:1.05rem; margin-bottom:10px;"></div>
+        <textarea id="cancel-reason" class="form-control" rows="3"></textarea>
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+            <button id="cancel-confirm" style="padding:6px 14px; border:none; border-radius:6px; background:#27ae60; color:white; font-weight:600;">Confirm</button>
+            <button id="cancel-cancel" style="padding:6px 14px; border:none; border-radius:6px; background:#e74c3c; color:white; font-weight:600;">Close</button>
+        </div>
+    </div>
+</div>
+
 <script th:inline="javascript">
+    const LABELS = {
+        actions: document.getElementById('lblActions')?.innerText || 'Actions',
+        cancel: document.getElementById('lblCancel')?.innerText || 'Cancel',
+        cancelConfirm: document.getElementById('lblCancelConfirm')?.innerText || 'Request cancellation?',
+        cancelRequested: document.getElementById('lblCancelRequested')?.innerText || 'Cancellation requested',
+        cancelReasonPlaceholder: document.getElementById('lblCancelReasonPlaceholder')?.innerText || 'Optional reason'
+    };
+
     function showMessage(msg, type='success') {
         const overlay = document.getElementById('message-overlay');
         const box = document.getElementById('message-box');
@@ -137,6 +166,8 @@
         return `${day}.${month}.${year}`;
     }
 
+    let pendingCancelId = null;
+
     async function loadMyVouchers() {
     const token = localStorage.getItem('jwt');
 
@@ -158,6 +189,12 @@
         vouchers.forEach((v,index)=>{
             const arrival = formatDate(v.arrivalDate);
             const eviction = formatDate(v.evictionDate);
+
+            let actions = '';
+            if (v.status === 'PAID') {
+                actions += `<button class="btn btn-cancel btn-sm" onclick="openCancel('${v.id}')">${LABELS.cancel}</button>`;
+            }
+
             tbody.innerHTML+=`
                 <tr>
                     <td>${index+1}</td>
@@ -169,6 +206,7 @@
                     <td class="stars">${renderStars(v.hotelType)}</td>
                     <td class="dates">${arrival} – ${eviction}</td>
                     <td class="hot-cell">${v.isHot ? '<span class="hot-badge">🔥</span>' : ''}</td>
+                    <td class="text-center">${actions}</td>
                 </tr>
             `;
         });
@@ -177,6 +215,51 @@
         showMessage(err.message,'error');
     }
 }
+
+    function openCancel(id) {
+        pendingCancelId = id;
+        document.getElementById('cancel-text').innerText = LABELS.cancelConfirm;
+        const textarea = document.getElementById('cancel-reason');
+        textarea.value = '';
+        textarea.placeholder = LABELS.cancelReasonPlaceholder;
+        document.getElementById('cancel-overlay').style.display = 'flex';
+    }
+
+    function closeCancel() {
+        pendingCancelId = null;
+        document.getElementById('cancel-overlay').style.display = 'none';
+    }
+
+    document.getElementById('cancel-cancel').addEventListener('click', closeCancel);
+    document.getElementById('cancel-confirm').addEventListener('click', async ()=>{
+        const reason = document.getElementById('cancel-reason').value || null;
+        const token = localStorage.getItem('jwt');
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+
+            const response = await fetch(`/api/vouchers/${pendingCancelId}/cancel`, {
+                method: 'PATCH',
+                headers,
+                credentials: 'same-origin',
+                body: JSON.stringify({ reason })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                showMessage(data.message || 'Cancellation failed', 'error');
+                closeCancel();
+                return;
+            }
+
+            showMessage(LABELS.cancelRequested, 'success');
+            closeCancel();
+            loadMyVouchers();
+        } catch (err) {
+            showMessage(err.message, 'error');
+            closeCancel();
+        }
+    });
 
 
     window.onload = ()=>{ loadUserInfo(); loadMyVouchers(); };

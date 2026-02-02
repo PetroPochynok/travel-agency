@@ -181,4 +181,44 @@ public class VoucherRestController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{id}/cancel")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<VoucherDTO>> requestCancellation(@PathVariable String id,
+                                                                       @RequestBody Map<String, String> body,
+                                                                       Authentication authentication) {
+        String username = authentication.getName();
+        String reason = body != null ? body.get("reason") : null;
+
+        VoucherDTO updated = voucherService.requestCancellation(id, username, reason);
+
+        ApiResponse<VoucherDTO> response = new ApiResponse<>();
+        response.setResults(updated);
+        response.setStatusCode("OK");
+        response.setStatusMessage("Cancellation requested successfully");
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/cancel/decision")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<VoucherDTO>> decideCancellation(@PathVariable String id,
+                                                                      @RequestBody Map<String, Object> body,
+                                                                      Authentication authentication) {
+        boolean approved = false;
+        if (body != null && body.get("approved") instanceof Boolean) {
+            approved = (Boolean) body.get("approved");
+        }
+
+        String adminUsername = authentication.getName();
+        VoucherDTO updated = voucherService.decideCancellation(id, approved, adminUsername);
+
+        ApiResponse<VoucherDTO> response = new ApiResponse<>();
+        response.setResults(updated);
+        response.setStatusCode("OK");
+        response.setStatusMessage(approved ? "Cancellation approved" : "Cancellation rejected");
+
+        return ResponseEntity.ok(response);
+    }
+
 }

@@ -1,10 +1,7 @@
 package com.epam.finaltask.service;
 
 import com.epam.finaltask.dto.VoucherDTO;
-import com.epam.finaltask.exception.InvalidDatesException;
-import com.epam.finaltask.exception.InvalidUuidException;
-import com.epam.finaltask.exception.VoucherNotFoundException;
-import com.epam.finaltask.exception.VoucherOrderException;
+import com.epam.finaltask.exception.*;
 import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
 import com.epam.finaltask.repository.UserRepository;
@@ -15,9 +12,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,13 +52,14 @@ public class VoucherServiceImpl implements VoucherService {
         return voucherMapper.toVoucherDTO(savedVoucher);
     }
 
+
     @Override
     public VoucherDTO order(String id, String userId) {
         Voucher voucher = voucherRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new VoucherNotFoundException("Voucher not found"));
 
         User user = userRepository.findById(UUID.fromString(userId))
-                .orElseThrow(() -> new VoucherNotFoundException("Voucher not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (voucher.getStatus() != VoucherStatus.REGISTERED) {
             throw new VoucherOrderException("Voucher cannot be ordered");
@@ -237,6 +237,59 @@ public class VoucherServiceImpl implements VoucherService {
         Page<Voucher> page = voucherRepository.findAll(spec, pageable);
 
         return page.map(voucherMapper::toVoucherDTO);
+    }
+
+    @Override
+    @Transactional
+    public VoucherDTO requestCancellation(String id, String username, String reason) {
+        Voucher voucher = voucherRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new VoucherNotFoundException("Voucher not found"));
+
+        if (voucher.getUser() == null || !username.equals(voucher.getUser().getUsername())) {
+            throw new VoucherOrderException("You may only request cancellation for your own voucher");
+        }
+
+        if (voucher.getStatus() != VoucherStatus.PAID) {
+            throw new VoucherOrderException("Voucher cannot be cancelled in its current status");
+        }
+
+        voucher.setStatus(VoucherStatus.CANCELLATION_REQUESTED);
+        voucher.setCancellationReason(reason);
+        voucher.setCancellationRequestedAt(LocalDateTime.now());
+
+        voucherRepository.save(voucher);
+
+        return voucherMapper.toVoucherDTO(voucher);
+    }
+
+    @Override
+    @Transactional
+    public VoucherDTO decideCancellation(String id, boolean approved, String adminUsername) {
+        Voucher voucher = voucherRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new VoucherNotFoundException("Voucher not found"));
+
+        if (voucher.getStatus() != VoucherStatus.CANCELLATION_REQUESTED) {
+            throw new VoucherOrderException("Voucher is not awaiting cancellation");
+        }
+
+        User user = voucher.getUser();
+        if (approved) {
+            if (user != null) {
+                user.setBalance(user.getBalance().add(BigDecimal.valueOf(voucher.getPrice())));
+                userRepository.save(user);
+            }
+            voucher.setStatus(VoucherStatus.CANCELED);
+        } else {
+            voucher.setStatus(VoucherStatus.PAID);
+        }
+
+        // clear request fields
+        voucher.setCancellationReason(null);
+        voucher.setCancellationRequestedAt(null);
+
+        voucherRepository.save(voucher);
+
+        return voucherMapper.toVoucherDTO(voucher);
     }
 
 }

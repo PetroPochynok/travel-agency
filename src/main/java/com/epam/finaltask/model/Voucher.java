@@ -1,6 +1,7 @@
 package com.epam.finaltask.model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import lombok.*;
@@ -52,4 +53,10 @@ public class Voucher {
     private User user;
 
     private Boolean isHot;
+
+    @Column(name = "cancellation_reason")
+    private String cancellationReason;
+
+    @Column(name = "cancellation_requested_at")
+    private LocalDateTime cancellationRequestedAt;
 }
