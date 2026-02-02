@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{adminCanceled.title}">Canceled Vouchers</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body { background-color: #eef4fb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .top-bar { background: #ffffff; padding: 15px 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 1000px; margin-top: 30px; }
+        .card { padding: 20px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+        .btn-reregister { background:#27ae60; color:white; border:none; padding:6px 10px; border-radius:6px; }
+        .price { font-weight: 600; color: #2c3e50; white-space: nowrap; }
+        .lang-switch { text-align: center; margin: 15px 0; }
+        .lang-switch a { margin: 0 5px; padding: 5px 10px; border-radius: 5px; background-color: #27ae60; color: white; font-weight: 600; text-decoration: none; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+<div class="top-bar">
+    <h4>🌍 Travel Agency - Admin</h4>
+    <div>
+        <button onclick="goCatalog()" class="btn btn-secondary" th:text="#{admin.back}">Back</button>
+    </div>
+</div>
+
+<div class="lang-switch">
+    <a th:href="@{/admin/canceled(lang='en')}">EN</a>
+    <a th:href="@{/admin/canceled(lang='uk')}">UA</a>
+    <a th:href="@{/admin/canceled(lang='fr')}">FR</a>
+    <a th:href="@{/admin/canceled(lang='de')}">DE</a>
+    <a th:href="@{/admin/canceled(lang='es')}">ES</a>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h3 th:text="#{adminCanceled.title}">Canceled Vouchers</h3>
+        <p th:text="#{adminCanceled.description}">List of vouchers that were canceled and can be re-registered.</p>
+        <span id="lblReregister" th:text="#{admin.reregister}" hidden>Re-register</span>
+        <span id="confirmReregisterText" th:text="#{admin.confirm.reregister}" hidden>Are you sure you want to make this voucher available again?</span>
+        <span id="reregisterSuccess" th:text="#{admin.reregister.success}" hidden>Voucher is now available</span>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th th:text="#{catalog.titleCol}">Title</th>
+                    <th th:text="#{catalog.description}">Description</th>
+                    <th th:text="#{catalog.price}">Price</th>
+                    <th th:text="#{catalog.dates}">Dates</th>
+                    <th th:text="#{adminCanceled.actions}">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="canceledBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="message-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:9999;">
+    <div id="message-box" style="background:white; padding:30px 40px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.3); text-align:center; max-width:400px;">
+        <div id="message-text"></div>
+        <button onclick="closeMessage()" style="margin-top:15px; padding:6px 14px; border:none; border-radius:6px; background:#2980b9; color:white;">OK</button>
+    </div>
+</div>
+
+<div id="confirm-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:10000;">
+    <div style="background:white; padding:30px 40px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.3); text-align:center; max-width:400px;">
+        <div id="confirm-text" style="font-size:1.1rem; margin-bottom:20px;"></div>
+        <div style="display:flex; justify-content:center; gap:15px;">
+            <button class="yes" style="padding:6px 14px; border:none; border-radius:6px; background:#27ae60; color:white;">Yes</button>
+            <button class="no" style="padding:6px 14px; border:none; border-radius:6px; background:#e74c3c; color:white;">No</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    function goCatalog(){ window.location.href='/catalog'; }
+    function showMessage(msg){ document.getElementById('message-text').innerText = msg; document.getElementById('message-overlay').style.display='flex'; }
+    function closeMessage(){ document.getElementById('message-overlay').style.display='none'; }
+
+    async function loadCanceled(){
+        const token = localStorage.getItem('jwt');
+        const headers = {};
+        if(token) headers['Authorization'] = 'Bearer ' + token;
+        try{
+            const resp = await fetch('/api/vouchers/canceled', { headers, credentials: 'same-origin' });
+            if(!resp.ok) { showMessage('Failed to load'); return; }
+            const data = await resp.json();
+            const vouchers = Array.isArray(data.results) ? data.results : [];
+            const tbody = document.getElementById('canceledBody'); tbody.innerHTML = '';
+            vouchers.forEach((v,i)=>{
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td>${v.title}</td>
+                        <td>${v.description}</td>
+                        <td class="price">${v.price} $</td>
+                        <td>${new Date(v.arrivalDate).toLocaleDateString()} - ${new Date(v.evictionDate).toLocaleDateString()}</td>
+                        <td><button class="btn-reregister" onclick="confirmReregister('${v.id}')">${document.getElementById('lblReregister').innerText}</button></td>
+                    </tr>
+                `;
+            });
+        }catch(e){ console.error(e); showMessage('Error'); }
+    }
+
+    function confirmReregister(id){
+        const overlay = document.getElementById('confirm-overlay');
+        const text = document.getElementById('confirm-text');
+        text.innerText = document.getElementById('confirmReregisterText').innerText;
+        overlay.style.display='flex';
+        const yes = overlay.querySelector('.yes');
+        const no = overlay.querySelector('.no');
+        function cleanup(){ overlay.style.display='none'; yes.removeEventListener('click', onYes); no.removeEventListener('click', onNo); }
+        async function onYes(){ cleanup(); await doReregister(id); }
+        function onNo(){ cleanup(); }
+        yes.addEventListener('click', onYes); no.addEventListener('click', onNo);
+    }
+
+    async function doReregister(id){
+        const token = localStorage.getItem('jwt');
+        const headers = {'Content-Type':'application/json'}; if(token) headers['Authorization'] = 'Bearer ' + token;
+        try{
+            const resp = await fetch(`/api/vouchers/${id}/reregister`, { method: 'PATCH', headers, credentials: 'same-origin' });
+            const data = await resp.json(); if(!resp.ok){ showMessage(data.message || 'Failed'); return; }
+            showMessage(document.getElementById('reregisterSuccess').innerText || 'Done');
+            loadCanceled();
+        }catch(e){ console.error(e); showMessage('Error'); }
+    }
+
+    window.onload = ()=>{ loadCanceled(); };
+</script>
+</body>
+</html>

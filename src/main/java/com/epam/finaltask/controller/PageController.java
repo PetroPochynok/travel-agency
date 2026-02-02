@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.util.UUID;
-
 @Controller
 @RequiredArgsConstructor
 public class PageController {
@@ -48,5 +46,11 @@ public class PageController {
     @PreAuthorize("hasRole('ADMIN')")
     public String adminRequestsPage() {
         return "admin-requests";
+    }
+
+    @GetMapping("/admin/canceled")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String adminCanceledPage() {
+        return "admin-canceled";
     }
 }

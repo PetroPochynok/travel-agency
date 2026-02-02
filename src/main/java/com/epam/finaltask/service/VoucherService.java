@@ -35,4 +35,5 @@ public interface VoucherService {
     );
     VoucherDTO requestCancellation(String id, String username, String reason);
     VoucherDTO decideCancellation(String id, boolean approved, String adminUsername);
+    VoucherDTO reregisterVoucher(String id, String adminUsername);
 }

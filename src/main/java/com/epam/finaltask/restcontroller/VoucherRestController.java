@@ -7,6 +7,7 @@ import com.epam.finaltask.model.HotelType;
 import com.epam.finaltask.model.TourType;
 import com.epam.finaltask.model.TransferType;
 import com.epam.finaltask.model.User;
+import com.epam.finaltask.model.VoucherStatus;
 import com.epam.finaltask.repository.UserRepository;
 import com.epam.finaltask.service.VoucherService;
 import jakarta.validation.Valid;
@@ -217,6 +218,35 @@ public class VoucherRestController {
         response.setResults(updated);
         response.setStatusCode("OK");
         response.setStatusMessage(approved ? "Cancellation approved" : "Cancellation rejected");
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/canceled")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<VoucherDTO>>> findCanceled() {
+        List<VoucherDTO> canceled = voucherService.findAll().stream()
+                .filter(v -> v.getStatus() == VoucherStatus.CANCELED)
+                .toList();
+
+        ApiResponse<List<VoucherDTO>> response = new ApiResponse<>();
+        response.setResults(canceled);
+        response.setStatusCode("OK");
+        response.setStatusMessage("Canceled vouchers retrieved successfully");
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/reregister")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<VoucherDTO>> reregisterVoucher(@PathVariable String id, Authentication authentication) {
+        String adminUsername = authentication.getName();
+        VoucherDTO updated = voucherService.reregisterVoucher(id, adminUsername);
+
+        ApiResponse<VoucherDTO> response = new ApiResponse<>();
+        response.setResults(updated);
+        response.setStatusCode("OK");
+        response.setStatusMessage("Voucher reregistered successfully");
 
         return ResponseEntity.ok(response);
     }

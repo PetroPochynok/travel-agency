@@ -278,12 +278,34 @@ public class VoucherServiceImpl implements VoucherService {
                 user.setBalance(user.getBalance().add(BigDecimal.valueOf(voucher.getPrice())));
                 userRepository.save(user);
             }
+            voucher.setUser(null);
             voucher.setStatus(VoucherStatus.CANCELED);
         } else {
             voucher.setStatus(VoucherStatus.PAID);
         }
 
         // clear request fields
+        voucher.setCancellationReason(null);
+        voucher.setCancellationRequestedAt(null);
+
+        voucherRepository.save(voucher);
+
+        return voucherMapper.toVoucherDTO(voucher);
+    }
+
+    @Override
+    @Transactional
+    public VoucherDTO reregisterVoucher(String id, String adminUsername) {
+        Voucher voucher = voucherRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new VoucherNotFoundException("Voucher not found"));
+
+        if (voucher.getStatus() != VoucherStatus.CANCELED) {
+            throw new VoucherOrderException("Voucher is not in CANCELED status");
+        }
+
+        // make available for purchase
+        voucher.setStatus(VoucherStatus.REGISTERED);
+        voucher.setUser(null);
         voucher.setCancellationReason(null);
         voucher.setCancellationRequestedAt(null);
 
