@@ -31,7 +31,8 @@ public interface VoucherService {
             String description,
             Double minPrice,
             Double maxPrice,
-            Pageable pageable
+            Pageable pageable,
+            String username
     );
     VoucherDTO requestCancellation(String id, String username, String reason);
     VoucherDTO decideCancellation(String id, boolean approved, String adminUsername);

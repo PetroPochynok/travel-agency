@@ -37,6 +37,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @Transactional
     public VoucherDTO create(VoucherDTO voucherDTO) {
         Voucher voucher = voucherMapper.toVoucher(voucherDTO);
 
@@ -54,12 +55,18 @@ public class VoucherServiceImpl implements VoucherService {
 
 
     @Override
+    @Transactional
     public VoucherDTO order(String id, String userId) {
         Voucher voucher = voucherRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new VoucherNotFoundException("Voucher not found"));
 
         User user = userRepository.findById(UUID.fromString(userId))
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        // If user is inactive they cannot order HOT vouchers
+        if (voucher.getIsHot() != null && voucher.getIsHot() && !user.isActive()) {
+            throw new VoucherOrderException("Inactive users cannot order HOT vouchers");
+        }
 
         if (voucher.getStatus() != VoucherStatus.REGISTERED) {
             throw new VoucherOrderException("Voucher cannot be ordered");
@@ -80,6 +87,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @Transactional
     public VoucherDTO update(String id, VoucherDTO voucherDTO) {
 
         UUID uuid;
@@ -123,11 +131,13 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @Transactional
     public void delete(String voucherId) {
         voucherRepository.deleteById(UUID.fromString(voucherId));
     }
 
     @Override
+    @Transactional
     public VoucherDTO changeHotStatus(String id, VoucherDTO voucherDTO) {
         Voucher voucher = voucherRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new VoucherNotFoundException("Voucher not found"));
@@ -137,6 +147,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public VoucherDTO findById(String id) {
         UUID uuid;
         try {
@@ -153,6 +164,7 @@ public class VoucherServiceImpl implements VoucherService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<VoucherDTO> findAllByTourType(TourType tourType, int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<Voucher> vouchers = voucherRepository.findAllByTourType(tourType, pageable);
@@ -160,12 +172,15 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<VoucherDTO> findAllByTransferType(TransferType transferType, int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<Voucher> vouchers = voucherRepository.findAllByTransferType(transferType, pageable);
         return vouchers.stream().map(voucherMapper::toVoucherDTO).toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public List<VoucherDTO> findAllByPrice(Double price, int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<Voucher> vouchers = voucherRepository.findAllByPrice(price, pageable);
@@ -173,6 +188,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<VoucherDTO> findAllByHotelType(HotelType hotelType, int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<Voucher> vouchers = voucherRepository.findAllByHotelType(hotelType, pageable);
@@ -180,6 +196,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<VoucherDTO> findMyVouchers(String username) {
         return voucherRepository.findAllByUser_Username(username)
                 .stream()
@@ -187,6 +204,8 @@ public class VoucherServiceImpl implements VoucherService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public List<VoucherDTO> findCatalog(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
         return voucherRepository
@@ -197,6 +216,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<VoucherDTO> findAll() {
         return voucherRepository.findAll()
                 .stream()
@@ -204,6 +224,8 @@ public class VoucherServiceImpl implements VoucherService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public Page<VoucherDTO> findCatalogFiltered(
             TourType tourType,
             TransferType transferType,
@@ -211,7 +233,8 @@ public class VoucherServiceImpl implements VoucherService {
             String description,
             Double minPrice,
             Double maxPrice,
-            Pageable pageable
+            Pageable pageable,
+            String username
     ) {
         Specification<Voucher> spec = Specification.where((root, query, cb) ->
                 cb.equal(root.get("status"), VoucherStatus.REGISTERED));
@@ -232,6 +255,13 @@ public class VoucherServiceImpl implements VoucherService {
         }
         if (hotelType != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("hotelType"), hotelType));
+        }
+
+        if (username != null && !username.isBlank()) {
+            var userOpt = userRepository.findUserByUsername(username);
+            if (userOpt.isPresent() && !userOpt.get().isActive()) {
+                spec = spec.and((root, query, cb) -> cb.isFalse(root.get("isHot")));
+            }
         }
 
         Page<Voucher> page = voucherRepository.findAll(spec, pageable);

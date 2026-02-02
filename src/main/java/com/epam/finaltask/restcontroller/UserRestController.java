@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class UserRestController {
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
+    @Transactional(readOnly = true)
     public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findUserByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -42,6 +44,7 @@ public class UserRestController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<UserDTO>>> findAllUsers() {
         List<UserDTO> users = userRepository.findAll()
                 .stream()
@@ -57,6 +60,7 @@ public class UserRestController {
 
     @PatchMapping("/{id}/active")
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public ResponseEntity<ApiResponse<UserDTO>> changeUserActive(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
         boolean active = true;
         if (body != null && body.get("active") instanceof Boolean) {
