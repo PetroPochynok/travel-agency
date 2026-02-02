@@ -102,8 +102,9 @@
     </div>
 </div>
 
-<!-- localized validation message -->
+<!-- localized validation messages -->
 <span id="invalidDatesText" th:text="#{myVoucherEdit.invalidDates}" hidden>Eviction date must be after arrival date</span>
+<span id="priceTooLowText" th:text="#{myVoucherEdit.priceTooLow}" hidden>Price must be at least 10$</span>
 
 <div id="message-overlay">
     <div id="message-box">
@@ -117,9 +118,19 @@
         const voucherId = /*[[${voucher.id}]]*/ '0';
         const arrivalValue = document.getElementById('arrivalDate').value;
         const evictionValue = document.getElementById('evictionDate').value;
+        const priceValue = document.getElementById('price').value;
 
-        // localized message
         const invalidMsg = document.getElementById('invalidDatesText')?.innerText || 'Eviction date must be after arrival date';
+        const priceTooLowMsg = document.getElementById('priceTooLowText')?.innerText || 'Price must be at least 10$';
+
+
+        if (priceValue !== '') {
+            const priceNum = parseFloat(priceValue);
+            if (!isNaN(priceNum) && priceNum < 10) {
+                showMessage(priceTooLowMsg, 'error');
+                return;
+            }
+        }
 
         if (arrivalValue && evictionValue) {
             const arrival = new Date(arrivalValue);
@@ -134,7 +145,7 @@
         const data = {
             title: document.getElementById('title').value,
             description: document.getElementById('description').value,
-            price: parseFloat(document.getElementById('price').value),
+            price: parseFloat(priceValue),
             tourType: document.getElementById('tourType').value,
             transferType: document.getElementById('transferType').value,
             hotelType: document.getElementById('hotelType').value,
