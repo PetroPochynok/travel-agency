@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.UUID;
 
@@ -41,5 +42,11 @@ public class PageController {
         VoucherDTO voucher = voucherService.findById(id);
         model.addAttribute("voucher", voucher);
         return "voucher-edit";
+    }
+
+    @GetMapping("/admin/requests")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String adminRequestsPage() {
+        return "admin-requests";
     }
 }

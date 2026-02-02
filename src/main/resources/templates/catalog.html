@@ -61,6 +61,13 @@
         <div class="user-name" id="userName" th:text="#{catalog.userName}">User Name</div>
         <div class="balance" id="balance" th:text="#{catalog.balance}">Balance: 0.00 $</div>
         <button class="btn-my-vouchers" onclick="goMyVouchers()" th:text="#{catalog.myVouchers}">My Vouchers</button>
+        <div id="adminMenu" style="display:none; position: relative;">
+            <button id="adminBtn" class="btn btn-outline-secondary" title="Admin">Admin ▾</button>
+            <div id="adminDropdown" style="position:absolute; right:0; background:white; border:1px solid #ddd; padding:8px; display:none; border-radius:6px; box-shadow:0 6px 20px rgba(0,0,0,0.08);">
+                <div><a href="#" onclick="goAdminRequests(); return false;" th:text="#{admin.requests}">Check requests</a></div>
+                <div style="margin-top:6px; color:#777;"><a href="#" onclick="alert('All users not implemented yet'); return false;" th:text="#{admin.allUsers}">All users</a></div>
+            </div>
+        </div>
         <button class="btn-logout" onclick="logout()" th:text="#{catalog.logout}">Logout</button>
     </div>
 </div>
@@ -230,6 +237,19 @@
 
     isAdmin = u.role && u.role.toUpperCase().includes('ADMIN');
     isManager = u.role && u.role.toUpperCase().includes('MANAGER');
+
+    if (isAdmin) {
+        const adminMenu = document.getElementById('adminMenu');
+        if (adminMenu) adminMenu.style.display = 'block';
+        const adminBtn = document.getElementById('adminBtn');
+        if (adminBtn) {
+            adminBtn.addEventListener('click', ()=>{
+                const dd = document.getElementById('adminDropdown');
+                if (!dd) return;
+                dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+            });
+        }
+    }
 }
     }catch(e){ console.warn('Failed to load user info'); }
 }
@@ -471,6 +491,8 @@
     await loadUserInfo();
     loadVouchers();
     };
+
+    function goAdminRequests(){ window.location.href = '/admin/requests'; }
 </script>
 </body>
 </html>

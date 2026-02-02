@@ -43,6 +43,8 @@ public class VoucherDTO {
 
     private UUID userId;
 
+    private String userName;
+
     private Boolean isHot;
 
     private String cancellationReason;
