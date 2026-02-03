@@ -62,4 +62,10 @@ public class PageController {
     public String adminUsersPage() {
         return "admin-users";
     }
+
+    @GetMapping("/admin/create-voucher")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String adminCreateVoucherPage() {
+        return "admin-create-voucher";
+    }
 }

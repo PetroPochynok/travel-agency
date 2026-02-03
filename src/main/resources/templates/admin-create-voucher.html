@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{admin.createVoucher.title}">Create Voucher</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body { background-color: #eef4fb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .top-bar { background: #ffffff; padding: 15px 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 700px; margin-top: 30px; }
+        .form-card { background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 12px; }
+        .form-card label { font-weight: 600; }
+        .lang-switch { text-align: center; margin: 15px 0; }
+        .lang-switch a { margin: 0 5px; padding: 5px 10px; border-radius: 5px; background-color: #27ae60; color: white; font-weight: 600; text-decoration: none; font-size: 0.85rem; }
+        #message-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        #message-box { background: white; padding: 30px 40px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); text-align: center; max-width: 400px; font-size: 1.1rem; }
+        #message-box.success { border-left: 6px solid #27ae60; }
+        #message-box.error { border-left: 6px solid #e74c3c; }
+        #message-box button { margin-top: 15px; padding: 6px 14px; border: none; border-radius: 6px; background-color: #2980b9; color: white; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="top-bar">
+    <h4>🌍 Travel Agency - Admin</h4>
+    <div>
+        <button onclick="goAdmin()" class="btn btn-secondary" th:text="#{admin.back}">Back</button>
+    </div>
+</div>
+
+<div class="lang-switch">
+    <a th:href="@{/admin/create-voucher(lang='en')}">EN</a>
+    <a th:href="@{/admin/create-voucher(lang='uk')}">UA</a>
+    <a th:href="@{/admin/create-voucher(lang='fr')}">FR</a>
+    <a th:href="@{/admin/create-voucher(lang='de')}">DE</a>
+    <a th:href="@{/admin/create-voucher(lang='es')}">ES</a>
+</div>
+
+<div class="container">
+    <div class="form-card">
+        <h3 th:text="#{admin.createVoucher.title}">Create Voucher</h3>
+        <label th:text="#{catalog.titleCol}">Title</label>
+        <input id="title" class="form-control" />
+
+        <label th:text="#{catalog.description}">Description</label>
+        <textarea id="description" class="form-control" rows="3"></textarea>
+
+        <label th:text="#{catalog.price}">Price</label>
+        <input id="price" type="number" min="0" step="0.01" class="form-control" />
+
+        <label th:text="#{catalog.tour}">Tour</label>
+        <select id="tourType" class="form-control">
+            <option value="HEALTH">HEALTH</option>
+            <option value="SPORTS">SPORTS</option>
+            <option value="LEISURE">LEISURE</option>
+            <option value="SAFARI">SAFARI</option>
+            <option value="WINE">WINE</option>
+            <option value="ECO">ECO</option>
+            <option value="ADVENTURE">ADVENTURE</option>
+            <option value="CULTURAL">CULTURAL</option>
+        </select>
+
+        <label th:text="#{catalog.transfer}">Transfer</label>
+        <select id="transferType" class="form-control">
+            <option value="BUS">BUS</option>
+            <option value="TRAIN">TRAIN</option>
+            <option value="PLANE">PLANE</option>
+            <option value="SHIP">SHIP</option>
+            <option value="PRIVATE_CAR">PRIVATE_CAR</option>
+            <option value="JEEPS">JEEPS</option>
+            <option value="MINIBUS">MINIBUS</option>
+            <option value="ELECTRICAL_CARS">ELECTRICAL_CARS</option>
+        </select>
+
+        <label th:text="#{catalog.hotel}">Hotel</label>
+        <select id="hotelType" class="form-control">
+            <option value="ONE_STAR">ONE_STAR</option>
+            <option value="TWO_STARS">TWO_STARS</option>
+            <option value="THREE_STARS">THREE_STARS</option>
+            <option value="FOUR_STARS">FOUR_STARS</option>
+            <option value="FIVE_STARS">FIVE_STARS</option>
+        </select>
+
+        <label th:text="#{myVoucherEdit.arrivalDate}">Arrival Date</label>
+        <input id="arrivalDate" type="date" class="form-control" />
+
+        <label th:text="#{myVoucherEdit.evictionDate}">Eviction Date</label>
+        <input id="evictionDate" type="date" class="form-control" />
+
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-success" onclick="createVoucher()" th:text="#{admin.createVoucher.create}">Create</button>
+            <button class="btn btn-secondary" onclick="goAdmin()" th:text="#{admin.back}">Back</button>
+        </div>
+    </div>
+</div>
+
+<span id="invalidDatesText" th:text="#{myVoucherEdit.invalidDates}" hidden>Eviction date must be after arrival date</span>
+<span id="priceTooLowText" th:text="#{myVoucherEdit.priceTooLow}" hidden>Price must be at least 10$</span>
+
+<div id="message-overlay">
+    <div id="message-box">
+        <div id="message-text"></div>
+        <button onclick="closeMessage()">OK</button>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    function goAdmin(){ window.location.href='/catalog'; }
+    function showMessage(msg,type='success'){ const overlay=document.getElementById('message-overlay'); const box=document.getElementById('message-box'); box.className=type; document.getElementById('message-text').innerText=msg; overlay.style.display='flex'; }
+    function closeMessage(){ document.getElementById('message-overlay').style.display='none'; }
+
+    async function createVoucher(){
+        const arrival = document.getElementById('arrivalDate').value;
+        const eviction = document.getElementById('evictionDate').value;
+        const price = document.getElementById('price').value;
+        const invalidMsg = document.getElementById('invalidDatesText')?.innerText || 'Eviction date must be after arrival date';
+        const priceTooLowMsg = document.getElementById('priceTooLowText')?.innerText || 'Price must be at least 10$';
+
+        if(price !== ''){
+            const p = parseFloat(price);
+            if(!isNaN(p) && p < 10){ showMessage(priceTooLowMsg,'error'); return; }
+        }
+        if(arrival && eviction){ const a=new Date(arrival); const e=new Date(eviction); if(e <= a){ showMessage(invalidMsg,'error'); return; } }
+
+        const body = {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            price: parseFloat(price),
+            tourType: document.getElementById('tourType').value,
+            transferType: document.getElementById('transferType').value,
+            hotelType: document.getElementById('hotelType').value,
+            arrivalDate: arrival,
+            evictionDate: eviction
+        };
+
+        const token = localStorage.getItem('jwt');
+        try{
+            const headers = {'Content-Type':'application/json'}; if(token) headers['Authorization']='Bearer '+token;
+            const resp = await fetch('/api/vouchers/create', { method:'POST', headers, credentials:'same-origin', body: JSON.stringify(body) });
+            const data = await resp.json();
+            if(!resp.ok){ showMessage(data.message || 'Failed', 'error'); return; }
+            const successText = document.getElementById('admin.createVoucher.success')?.innerText || 'Voucher created';
+            showMessage(successText, 'success');
+            setTimeout(()=>window.location.href='/catalog',1000);
+        }catch(e){ console.error(e); showMessage('Error','error'); }
+    }
+</script>
+</body>
+</html>

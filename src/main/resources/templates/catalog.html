@@ -20,6 +20,9 @@
         .lang-switch { text-align: center; margin: 15px 0; }
         .lang-switch a { margin: 0 5px; padding: 5px 10px; border-radius: 5px; background-color: #27ae60; color: white; font-weight: 600; text-decoration: none; font-size: 0.85rem; }
         .lang-switch a:hover { background-color: #1e8449; }
+        .admin-menu-item { display:flex; gap:6px; align-items:center; }
+        .admin-menu-number { white-space:nowrap; font-weight:700; }
+        .admin-menu-label { white-space:normal; }
         .catalog-card { background: #ffffff; margin-top: 10px; padding: 25px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); display: flex; flex-direction: column;  align-items: center; }
         .table th { background-color: #f5f8fc; }
         .price { font-weight: 600; color: #2c3e50; white-space: nowrap; }
@@ -64,10 +67,11 @@
         <div id="adminMenu" style="display:none; position: relative;">
             <button id="adminBtn" class="btn btn-outline-secondary" title="Admin">Admin ▾</button>
             <div id="adminDropdown" style="position:absolute; right:0; background:white; border:1px solid #ddd; padding:8px; display:none; border-radius:6px; box-shadow:0 6px 20px rgba(0,0,0,0.08);">
-                <div><a href="#" onclick="goAdminRequests(); return false;" th:text="#{admin.requests}">Check requests</a></div>
-                <div style="margin-top:6px;"><a href="#" onclick="goAdminCanceled(); return false;" th:text="#{admin.canceled}">Canceled</a></div>
-                <div style="margin-top:6px; color:#777;"><a href="#" onclick="goAdminUsers(); return false;" th:text="#{admin.allUsers}">All users</a></div>
-            </div>
+                <div><a href="#" onclick="goAdminRequests(); return false;"><span class="admin-menu-item"><span class="admin-menu-number"></span><span class="admin-menu-label" th:text="#{admin.menu.checkRequests}">Check Requests</span></span></a></div>
+                <div style="margin-top:6px;"><a href="#" onclick="goAdminCanceled(); return false;"><span class="admin-menu-item"><span class="admin-menu-number"></span><span class="admin-menu-label" th:text="#{admin.menu.canceledVouchers}">Canceled Vouchers</span></span></a></div>
+                <div style="margin-top:6px;"><a href="#" onclick="goAdminUsers(); return false;"><span class="admin-menu-item"><span class="admin-menu-number"></span><span class="admin-menu-label" th:text="#{admin.menu.allUsers}">All Users</span></span></a></div>
+                <div style="margin-top:6px; color:#777;"><a href="#" onclick="goAdminCreateVoucher(); return false;"><span class="admin-menu-item"><span class="admin-menu-number"></span><span class="admin-menu-label" th:text="#{admin.menu.createVoucher}">Create Voucher</span></span></a></div>
+             </div>
         </div>
         <button class="btn-logout" onclick="logout()" th:text="#{catalog.logout}">Logout</button>
     </div>
@@ -491,11 +495,31 @@
     window.onload = async () => {
     await loadUserInfo();
     loadVouchers();
+    // ensure admin menu number + first word stay together
+    try { adjustAdminMenuLabels(); } catch(e) { /* ignore */ }
     };
+
+    function adjustAdminMenuLabels(){
+        const items = document.querySelectorAll('.admin-menu-item');
+        items.forEach(item => {
+            const num = item.querySelector('.admin-menu-number');
+            const lbl = item.querySelector('.admin-menu-label');
+            if(!num || !lbl) return;
+            const text = lbl.innerText.trim();
+            const idx = text.indexOf(' ');
+            if(idx === -1) return; // single word, nothing to do
+            const first = text.substring(0, idx);
+            const rest = text.substring(idx+1);
+            // put number + first word together
+            num.innerText = num.innerText + ' ' + first;
+            lbl.innerText = rest;
+        });
+    }
 
     function goAdminRequests(){ window.location.href = '/admin/requests'; }
     function goAdminCanceled(){ window.location.href = '/admin/canceled'; }
     function goAdminUsers(){ window.location.href = '/admin/users'; }
+    function goAdminCreateVoucher(){ window.location.href = '/admin/create-voucher'; }
 </script>
 </body>
 </html>
