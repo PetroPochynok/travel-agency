@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{balance.deposit.title}">Deposit</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body { background-color:#eef4fb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .top-bar { background: #ffffff; padding: 12px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); display:flex; justify-content:space-between; align-items:center; }
+        .top-bar h4 { margin: 0; color: #2c3e50; }
+        .top-bar .right-controls { display:flex; gap:10px; align-items:center; }
+        .lang-switch { text-align:center; margin: 12px 0; }
+        .lang-switch a { margin:0 5px; padding:5px 10px; border-radius:5px; background:#27ae60; color:white; text-decoration:none; font-weight:700; }
+        .container { max-width:600px; margin:20px auto; }
+        .card { padding:20px; border-radius:12px; background:white; box-shadow:0 6px 20px rgba(0,0,0,0.06); }
+    </style>
+</head>
+<body>
+<div class="top-bar">
+    <h4>🌍 Travel Agency</h4>
+    <div class="right-controls">
+        <button class="btn btn-outline-secondary" onclick="goBack()" th:text="#{balance.back}">Back</button>
+    </div>
+</div>
+
+<div class="lang-switch">
+    <a th:href="@{/deposit(lang='en')}">EN</a>
+    <a th:href="@{/deposit(lang='uk')}">UA</a>
+    <a th:href="@{/deposit(lang='fr')}">FR</a>
+    <a th:href="@{/deposit(lang='de')}">DE</a>
+    <a th:href="@{/deposit(lang='es')}">ES</a>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h3 th:text="#{balance.deposit.title}">Deposit funds</h3>
+        <div class="form-group">
+            <label th:text="#{balance.amount}">Amount</label>
+            <input id="amount" type="number" class="form-control" min="0.01" step="0.01" />
+        </div>
+        <div class="form-group">
+            <label th:text="#{balance.cardNumber}">Card Number</label>
+            <input id="cardNumber" type="text" class="form-control" maxlength="16" placeholder="0000111122223333" />
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label th:text="#{balance.expiry}">Expiry (MM/YY)</label>
+                <input id="expiry" type="text" class="form-control" placeholder="MM/YY" />
+            </div>
+            <div class="form-group col-md-6">
+                <label th:text="#{balance.cvv}">CVV</label>
+                <input id="cvv" type="text" class="form-control" maxlength="3" placeholder="123" />
+            </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-success" onclick="submitDeposit()" th:text="#{balance.deposit.button}">Deposit</button>
+            <button class="btn btn-secondary" onclick="goBack()" th:text="#{balance.back}">Back</button>
+        </div>
+        <div id="message" style="margin-top:12px;"></div>
+
+        <!-- localized client messages -->
+        <span id="msg.invalidAmount" th:text="#{balance.msg.invalidAmount}" hidden>Invalid amount</span>
+        <span id="msg.invalidCard" th:text="#{balance.msg.invalidCard}" hidden>Card number must be 16 digits</span>
+        <span id="msg.invalidExpiry" th:text="#{balance.msg.invalidExpiry}" hidden>Expiry must be MM/YY</span>
+        <span id="msg.cardExpired" th:text="#{balance.msg.cardExpired}" hidden>Card expired</span>
+        <span id="msg.invalidCvv" th:text="#{balance.msg.invalidCvv}" hidden>CVV must be 3 digits</span>
+        <span id="msg.depositSuccess" th:text="#{balance.msg.depositSuccess}" hidden>Deposit successful</span>
+    </div>
+</div>
+<script th:inline="javascript">
+    function goBack(){ window.location.href='/catalog'; }
+    function showMsg(msg, error){ const el=document.getElementById('message'); el.innerText=msg; el.style.color = error ? 'red' : 'green'; }
+    async function submitDeposit(){
+        const amount = document.getElementById('amount').value;
+        const card = document.getElementById('cardNumber').value.replace(/\s+/g,'');
+        const expiry = document.getElementById('expiry').value;
+        const cvv = document.getElementById('cvv').value;
+
+        const mInvalidAmount = document.getElementById('msg.invalidAmount').innerText;
+        const mInvalidCard = document.getElementById('msg.invalidCard').innerText;
+        const mInvalidExpiry = document.getElementById('msg.invalidExpiry').innerText;
+        const mCardExpired = document.getElementById('msg.cardExpired').innerText;
+        const mInvalidCvv = document.getElementById('msg.invalidCvv').innerText;
+        const mSuccess = document.getElementById('msg.depositSuccess').innerText;
+
+        // client-side validation
+        if(!amount || parseFloat(amount) <= 0){ showMsg(mInvalidAmount, true); return; }
+        if(!/^[0-9]{16}$/.test(card)){ showMsg(mInvalidCard, true); return; }
+        if(!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)){ showMsg(mInvalidExpiry, true); return; }
+        // expiry check
+        const parts = expiry.split('/'); const mm = parseInt(parts[0],10); const yy = 2000 + parseInt(parts[1],10);
+        const cardYM = new Date(yy, mm-1);
+        const nowYM = new Date((new Date()).getFullYear(), (new Date()).getMonth());
+        if(cardYM < nowYM){ showMsg(mCardExpired, true); return; }
+        if(!/^[0-9]{3}$/.test(cvv)){ showMsg(mInvalidCvv, true); return; }
+
+        const token = localStorage.getItem('jwt');
+        try{
+            const headers = {'Content-Type':'application/json'}; if(token) headers['Authorization']='Bearer '+token;
+            const resp = await fetch('/api/users/deposit', { method:'POST', headers, credentials:'same-origin', body: JSON.stringify({amount, cardNumber:card, expiry, cvv}) });
+            const data = await resp.json();
+            if(!resp.ok){ showMsg(data.statusMessage || data.status || 'Deposit failed', true); return; }
+            showMsg(mSuccess);
+            setTimeout(()=>window.location.href='/catalog',1000);
+        }catch(e){ showMsg('Error', true); }
+    }
+</script>
+</body>
+</html>

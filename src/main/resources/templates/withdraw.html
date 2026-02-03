@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{balance.withdraw.title}">Withdraw</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body { background-color:#eef4fb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .top-bar { background: #ffffff; padding: 12px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); display:flex; justify-content:space-between; align-items:center; }
+        .top-bar h4 { margin: 0; color: #2c3e50; }
+        .top-bar .right-controls { display:flex; gap:10px; align-items:center; }
+        .lang-switch { text-align:center; margin: 12px 0; }
+        .lang-switch a { margin:0 5px; padding:5px 10px; border-radius:5px; background:#27ae60; color:white; text-decoration:none; font-weight:700; }
+        .container { max-width:600px; margin:20px auto; }
+        .card { padding:20px; border-radius:12px; background:white; box-shadow:0 6px 20px rgba(0,0,0,0.06); }
+    </style>
+</head>
+<body>
+<div class="top-bar">
+    <h4>🌍 Travel Agency</h4>
+    <div class="right-controls">
+        <button class="btn btn-outline-secondary" onclick="goBack()" th:text="#{balance.back}">Back</button>
+    </div>
+</div>
+
+<div class="lang-switch">
+    <a th:href="@{/withdraw(lang='en')}">EN</a>
+    <a th:href="@{/withdraw(lang='uk')}">UA</a>
+    <a th:href="@{/withdraw(lang='fr')}">FR</a>
+    <a th:href="@{/withdraw(lang='de')}">DE</a>
+    <a th:href="@{/withdraw(lang='es')}">ES</a>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h3 th:text="#{balance.withdraw.title}">Withdraw funds</h3>
+        <div class="form-group">
+            <label th:text="#{balance.amount}">Amount</label>
+            <input id="amount" type="number" class="form-control" min="0.01" step="0.01" />
+        </div>
+        <div class="form-group">
+            <label th:text="#{balance.cardNumber}">Card Number</label>
+            <input id="cardNumber" type="text" class="form-control" maxlength="16" placeholder="0000111122223333" />
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-danger" onclick="submitWithdraw()" th:text="#{balance.withdraw.button}">Withdraw</button>
+            <button class="btn btn-secondary" onclick="goBack()" th:text="#{balance.back}">Back</button>
+        </div>
+        <div id="message" style="margin-top:12px"></div>
+    </div>
+</div>
+<script th:inline="javascript">
+    function goBack(){ window.location.href='/catalog'; }
+    function showMsg(msg, err){ const el=document.getElementById('message'); el.innerText=msg; el.style.color = err ? 'red' : 'green'; }
+    async function submitWithdraw(){
+        const amount = document.getElementById('amount').value;
+        const card = document.getElementById('cardNumber').value.replace(/\s+/g,'');
+        if(!amount || parseFloat(amount) <= 0){ showMsg('Invalid amount', true); return; }
+        if(!/^\d{16}$/.test(card)){ showMsg('Card number must be 16 digits', true); return; }
+        const token = localStorage.getItem('jwt');
+        try{
+            const headers = {'Content-Type':'application/json'}; if(token) headers['Authorization']='Bearer '+token;
+            const resp = await fetch('/api/users/withdraw', { method:'POST', headers, credentials:'same-origin', body: JSON.stringify({amount, cardNumber:card}) });
+            const data = await resp.json();
+            if(!resp.ok){ showMsg(data.statusMessage || data.status || 'Withdraw failed', true); return; }
+            showMsg('Withdraw successful');
+            setTimeout(()=>window.location.href='/catalog',1000);
+        }catch(e){ showMsg('Error', true); }
+    }
+</script>
+</body>
+</html>

@@ -68,4 +68,16 @@ public class PageController {
     public String adminCreateVoucherPage() {
         return "admin-create-voucher";
     }
+
+    @GetMapping("/deposit")
+    @PreAuthorize("isAuthenticated()")
+    public String depositPage(){
+        return "deposit";
+    }
+
+    @GetMapping("/withdraw")
+    @PreAuthorize("isAuthenticated()")
+    public String withdrawPage(){
+        return "withdraw";
+    }
 }

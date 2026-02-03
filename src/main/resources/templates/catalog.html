@@ -63,7 +63,13 @@
     <div class="top-right">
         <div class="user-name" id="userName" th:text="#{catalog.userName}">User Name</div>
         <div class="balance" id="balance" th:text="#{catalog.balance}">Balance: 0.00 $</div>
-        <button class="btn-my-vouchers" onclick="goMyVouchers()" th:text="#{catalog.myVouchers}">My Vouchers</button>
+        <div style="position:relative;">
+            <button id="balanceBtn" class="btn btn-outline-success" style="margin-left:8px;">Balance ▾</button>
+            <div id="balanceDropdown" style="display:none; position:absolute; right:0; background:white; border:1px solid #ddd; padding:8px; border-radius:6px; box-shadow:0 6px 20px rgba(0,0,0,0.08);">
+                <div><a href="#" onclick="goDeposit(); return false;" th:text="#{balance.deposit}">Deposit</a></div>
+                <div style="margin-top:6px;"><a href="#" onclick="goWithdraw(); return false;" th:text="#{balance.withdraw}">Withdraw</a></div>
+            </div>
+        </div>
         <div id="adminMenu" style="display:none; position: relative;">
             <button id="adminBtn" class="btn btn-outline-secondary" title="Admin">Admin ▾</button>
             <div id="adminDropdown" style="position:absolute; right:0; background:white; border:1px solid #ddd; padding:8px; display:none; border-radius:6px; box-shadow:0 6px 20px rgba(0,0,0,0.08);">
@@ -73,6 +79,7 @@
                 <div style="margin-top:6px; color:#777;"><a href="#" onclick="goAdminCreateVoucher(); return false;"><span class="admin-menu-item"><span class="admin-menu-number"></span><span class="admin-menu-label" th:text="#{admin.menu.createVoucher}">Create Voucher</span></span></a></div>
              </div>
         </div>
+        <button class="btn-my-vouchers" onclick="goMyVouchers()" th:text="#{catalog.myVouchers}">My Vouchers</button>
         <button class="btn-logout" onclick="logout()" th:text="#{catalog.logout}">Logout</button>
     </div>
 </div>
@@ -255,6 +262,8 @@
             });
         }
     }
+    const balanceBtn = document.getElementById('balanceBtn');
+    if(balanceBtn){ balanceBtn.addEventListener('click', ()=>{ const dd=document.getElementById('balanceDropdown'); if(!dd) return; dd.style.display = dd.style.display === 'none' ? 'block' : 'none'; }); }
 }
     }catch(e){ console.warn('Failed to load user info'); }
 }
@@ -520,6 +529,8 @@
     function goAdminCanceled(){ window.location.href = '/admin/canceled'; }
     function goAdminUsers(){ window.location.href = '/admin/users'; }
     function goAdminCreateVoucher(){ window.location.href = '/admin/create-voucher'; }
+    function goDeposit(){ window.location.href = '/deposit'; }
+    function goWithdraw(){ window.location.href = '/withdraw'; }
 </script>
 </body>
 </html>
