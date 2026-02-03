@@ -2,13 +2,11 @@ package com.epam.finaltask.restcontroller;
 
 import com.epam.finaltask.dto.ApiResponse;
 import com.epam.finaltask.dto.VoucherDTO;
-import com.epam.finaltask.exception.UserNotFoundException;
 import com.epam.finaltask.model.HotelType;
 import com.epam.finaltask.model.TourType;
 import com.epam.finaltask.model.TransferType;
-import com.epam.finaltask.model.User;
 import com.epam.finaltask.model.VoucherStatus;
-import com.epam.finaltask.repository.UserRepository;
+import com.epam.finaltask.service.UserService;
 import com.epam.finaltask.service.VoucherService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -33,7 +31,7 @@ import java.util.Map;
 public class VoucherRestController {
 
     private final VoucherService voucherService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
@@ -65,10 +63,8 @@ public class VoucherRestController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<VoucherDTO>> orderVoucher(@PathVariable String id, Authentication authentication) {
         String username = authentication.getName();
-        User user = userRepository.findUserByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
-        VoucherDTO ordered = voucherService.order(id, user.getId().toString());
+        String user = userService.getUserByUsername(username).getId();
+        VoucherDTO ordered = voucherService.order(id, user);
 
         ApiResponse<VoucherDTO> response = new ApiResponse<>();
         response.setResults(ordered);

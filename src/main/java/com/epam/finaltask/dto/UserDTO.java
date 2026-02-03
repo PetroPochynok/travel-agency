@@ -28,8 +28,6 @@ public class UserDTO {
 
 	private String role;
 
-	private List<Voucher> vouchers;
-
 	private String phoneNumber;
 
 	private BigDecimal balance;

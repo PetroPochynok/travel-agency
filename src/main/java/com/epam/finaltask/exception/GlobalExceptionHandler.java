@@ -1,5 +1,7 @@
 package com.epam.finaltask.exception;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -8,9 +10,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final MessageSource messageSource;
 
     @ExceptionHandler({
             VoucherNotFoundException.class,
@@ -23,6 +29,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ApiError(ex.getMessage(), LocalDateTime.now()));
+    }
+
+    @ExceptionHandler(TransactionException.class)
+    public ResponseEntity<ApiError> handleTransaction(TransactionException ex, Locale locale) {
+        String localizedMessage = messageSource.getMessage(ex.getMessage(), null, ex.getMessage(), locale);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiError(localizedMessage, LocalDateTime.now()));
     }
 
     @ExceptionHandler(InvalidDatesException.class)
