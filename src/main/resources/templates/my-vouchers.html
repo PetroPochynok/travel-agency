@@ -46,7 +46,19 @@
     <h4>🌍 Travel Agency</h4>
     <div class="top-right">
         <div class="user-name" id="userName" th:text="#{catalog.userName}">User Name</div>
-        <div class="balance" id="balance" th:text="#{catalog.balance}">Balance: 0.00 $</div>
+
+        <div style="position: relative;">
+            <button id="balanceBtn" class="btn btn-outline-success" style="margin-left:8px;">
+                Balance: <span id="balanceAmount">0.00 $</span> ▾
+            </button>
+            <div id="balanceDropdown"
+                 style="display:none; position:absolute; right:0; background:white; border:1px solid #ddd;
+                padding:8px; border-radius:6px; box-shadow:0 6px 20px rgba(0,0,0,0.08);">
+                <div><a href="#" onclick="goDeposit(); return false;" th:text="#{balance.deposit}">Deposit</a></div>
+                <div style="margin-top:6px;"><a href="#" onclick="goWithdraw(); return false;" th:text="#{balance.withdraw}">Withdraw</a></div>
+            </div>
+        </div>
+
         <button class="btn-back-catalog" onclick="goBackCatalog()" th:text="#{myVouchers.backCatalog}">Back to Catalog</button>
         <button class="btn-logout" onclick="logout()" th:text="#{catalog.logout}">Logout</button>
     </div>
@@ -139,10 +151,23 @@
             const user = await response.json();
             if (user) {
                 document.getElementById('userName').innerText = `${user.firstName} ${user.lastName}`;
-                document.getElementById('balance').innerText = `${user.balance.toFixed(2)} $`;
+                const balEl = document.getElementById('balanceAmount');
+if (balEl) balEl.innerText = `${user.balance.toFixed(2)}$`;
+
+const balanceBtn = document.getElementById('balanceBtn');
+if (balanceBtn) {
+    balanceBtn.addEventListener('click', () => {
+        const dd = document.getElementById('balanceDropdown');
+        if (!dd) return;
+        dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+    });
+}
             }
         } catch (e) { console.warn('Failed to load user info'); }
     }
+
+    function goDeposit() { window.location.href = '/deposit'; }
+    function goWithdraw() { window.location.href = '/withdraw'; }
 
     function logout() {
         try { fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch(e){}
@@ -151,7 +176,9 @@
         setTimeout(()=>window.location.href='/login',1000);
     }
 
-    function goBackCatalog(){ window.location.href='/catalog'; }
+    function goBackCatalog() {
+    window.history.back();
+}
 
     function renderStars(hotelType) {
         const map={ONE_STAR:1,TWO_STARS:2,THREE_STARS:3,FOUR_STARS:4,FIVE_STARS:5};

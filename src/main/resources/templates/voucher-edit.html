@@ -186,7 +186,9 @@
     }
 
     function closeMessage(){ document.getElementById('message-overlay').style.display='none'; }
-    function goBackCatalog(){ window.location.href='/catalog'; }
+    function goBackCatalog() {
+    window.history.back();
+}
 
     async function loadUserInfo() {
         const token = localStorage.getItem('jwt'); if(!token) return;
