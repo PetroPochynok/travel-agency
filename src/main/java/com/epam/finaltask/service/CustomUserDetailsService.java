@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder; // inject from Spring, no cycle
+    private final PasswordEncoder passwordEncoder;
 
     public User saveUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));

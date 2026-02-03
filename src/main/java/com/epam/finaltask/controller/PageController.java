@@ -26,16 +26,19 @@ public class PageController {
     }
 
     @GetMapping("/catalog")
+    @PreAuthorize("isAuthenticated()")
     public String catalogPage() {
         return "catalog";
     }
 
     @GetMapping("/catalog/my")
+    @PreAuthorize("isAuthenticated()")
     public String myVouchersPage() {
         return "my-vouchers";
     }
 
     @GetMapping("/admin/vouchers/{id}/edit")
+    @PreAuthorize("hasRole('ADMIN')")
     public String editVoucherPage(@PathVariable String id, Model model) {
         VoucherDTO voucher = voucherService.findById(id);
         model.addAttribute("voucher", voucher);

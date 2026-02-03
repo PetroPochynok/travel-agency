@@ -63,7 +63,6 @@ public class VoucherServiceImpl implements VoucherService {
         User user = userRepository.findById(UUID.fromString(userId))
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        // If user is inactive they cannot order HOT vouchers
         if (voucher.getIsHot() != null && voucher.getIsHot() && !user.isActive()) {
             throw new VoucherOrderException("Inactive users cannot order HOT vouchers");
         }

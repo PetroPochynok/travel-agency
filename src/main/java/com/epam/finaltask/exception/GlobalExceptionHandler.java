@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity
-                .status(HttpStatus.FORBIDDEN) // 403
+                .status(HttpStatus.FORBIDDEN)
                 .body(new ApiError("Access Denied", LocalDateTime.now()));
     }
 
@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleUnexpected(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiError(ex.getMessage(), LocalDateTime.now())); // show actual message
+                .body(new ApiError(ex.getMessage(), LocalDateTime.now()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

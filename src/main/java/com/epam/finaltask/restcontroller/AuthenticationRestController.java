@@ -52,7 +52,7 @@ public class AuthenticationRestController {
 
         ResponseCookie cookie = ResponseCookie.from("jwt", jwt)
                 .httpOnly(true)
-                .secure(false) // set true in production (requires HTTPS)
+                .secure(false)
                 .path("/")
                 .maxAge(maxAgeSeconds)
                 .sameSite("Lax")

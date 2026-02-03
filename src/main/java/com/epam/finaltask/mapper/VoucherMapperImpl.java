@@ -13,7 +13,6 @@ public class VoucherMapperImpl implements VoucherMapper {
 
     public VoucherMapperImpl(ModelMapper modelMapper) {
         this.modelMapper = modelMapper;
-        // Avoid ModelMapper throwing on ambiguous mappings (we'll set userName manually)
         this.modelMapper.getConfiguration().setAmbiguityIgnored(true);
 
         TypeMap<Voucher, VoucherDTO> typeMap = this.modelMapper.getTypeMap(Voucher.class, VoucherDTO.class);
@@ -47,7 +46,6 @@ public class VoucherMapperImpl implements VoucherMapper {
         VoucherDTO dto = modelMapper.map(voucher, VoucherDTO.class);
         if (voucher.getUser() != null) {
             dto.setUserId(voucher.getUser().getId());
-            // set explicit username only
             dto.setUserName(voucher.getUser().getUsername());
         }
         return dto;
