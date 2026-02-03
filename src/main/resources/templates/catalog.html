@@ -62,9 +62,8 @@
     <h4>🌍 Travel Agency</h4>
     <div class="top-right">
         <div class="user-name" id="userName" th:text="#{catalog.userName}">User Name</div>
-        <div class="balance" id="balance" th:text="#{catalog.balance}">Balance: 0.00 $</div>
         <div style="position:relative;">
-            <button id="balanceBtn" class="btn btn-outline-success" style="margin-left:8px;">Balance ▾</button>
+            <button id="balanceBtn" class="btn btn-outline-success" style="margin-left:8px;">Balance:  <span id="balanceAmount">0.00$</span>▾</button>
             <div id="balanceDropdown" style="display:none; position:absolute; right:0; background:white; border:1px solid #ddd; padding:8px; border-radius:6px; box-shadow:0 6px 20px rgba(0,0,0,0.08);">
                 <div><a href="#" onclick="goDeposit(); return false;" th:text="#{balance.deposit}">Deposit</a></div>
                 <div style="margin-top:6px;"><a href="#" onclick="goWithdraw(); return false;" th:text="#{balance.withdraw}">Withdraw</a></div>
@@ -245,10 +244,10 @@
         const u=await r.json();
         if(u && u.balance!==undefined){
     document.getElementById('userName').innerText=`${u.firstName} ${u.lastName}`;
-    document.getElementById('balance').innerText=`${u.balance.toFixed(2)} $`;
+    const balEl = document.getElementById('balanceAmount'); if(balEl) balEl.innerText = `${u.balance.toFixed(2)}$`;
 
-    isAdmin = u.role && u.role.toUpperCase().includes('ADMIN');
-    isManager = u.role && u.role.toUpperCase().includes('MANAGER');
+     isAdmin = u.role && u.role.toUpperCase().includes('ADMIN');
+     isManager = u.role && u.role.toUpperCase().includes('MANAGER');
 
     if (isAdmin) {
         const adminMenu = document.getElementById('adminMenu');
