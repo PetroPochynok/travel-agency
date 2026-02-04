@@ -28,7 +28,6 @@ import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -110,8 +109,8 @@ public class AuthenticationRestController {
 
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
+        user.setFirstName(capitalize(request.getFirstName()));
+        user.setLastName(capitalize(request.getLastName()));
         user.setEmail(request.getEmail());
         user.setPhoneNumber(request.getPhoneNumber());
         user.setPassword(request.getPassword());
@@ -124,5 +123,9 @@ public class AuthenticationRestController {
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 
+    private String capitalize(String str) {
+        if (str == null || str.isEmpty()) return str;
+        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+    }
 
 }
