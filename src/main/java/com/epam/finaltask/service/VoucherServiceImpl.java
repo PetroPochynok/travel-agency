@@ -332,7 +332,6 @@ public class VoucherServiceImpl implements VoucherService {
             throw new VoucherOrderException("Voucher is not in CANCELED status");
         }
 
-        // make available for purchase
         voucher.setStatus(VoucherStatus.REGISTERED);
         voucher.setUser(null);
         voucher.setCancellationReason(null);

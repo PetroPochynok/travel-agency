@@ -2,15 +2,13 @@ package com.epam.finaltask.dto;
 
 import com.epam.finaltask.model.*;
 import jakarta.validation.constraints.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 public class VoucherDTO {
 
     private String id;

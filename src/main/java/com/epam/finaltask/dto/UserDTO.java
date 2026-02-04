@@ -1,17 +1,10 @@
 package com.epam.finaltask.dto;
 
 import java.math.BigDecimal;
-import java.util.List;
 
-import com.epam.finaltask.model.Voucher;
-
-import jakarta.validation.constraints.*;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
+@Data
 public class UserDTO {
 
 	private String id;
