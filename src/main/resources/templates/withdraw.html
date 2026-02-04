@@ -58,8 +58,8 @@
     const MSG_ERROR = /*[[#{balance.insufficient}]]*/ 'Unexpected error';
 
     function goBack() {
-        window.history.back();
-    }
+    window.location.href = "https://localhost:8443/catalog";
+}
 
     function showMsg(msg, err) {
         const el = document.getElementById('message');
