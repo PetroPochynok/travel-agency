@@ -39,6 +39,7 @@ public class SecurityConfig {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .requiresChannel(channel -> channel.anyRequest().requiresSecure())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/register").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
