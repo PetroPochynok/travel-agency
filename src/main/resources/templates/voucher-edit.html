@@ -142,6 +142,8 @@
             }
         }
 
+
+
         const data = {
             title: document.getElementById('title').value,
             description: document.getElementById('description').value,
@@ -175,6 +177,10 @@
         } catch(err) {
             showMessage(err.message, 'error');
         }
+    }
+
+    function goBackCatalog() {
+        window.location.href = '/catalog';
     }
 
     function showMessage(msg, type='success'){

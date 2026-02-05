@@ -13,22 +13,22 @@ public class VoucherDTO {
 
     private String id;
 
-    @NotBlank(message = "Title cannot be empty")
+    @NotBlank(message = "{voucher.title.notBlank}")
     private String title;
 
-    @NotBlank(message = "Description cannot be empty")
+    @NotBlank(message = "{voucher.description.notBlank}")
     private String description;
 
-    @Positive(message = "Price must be positive")
+    @Positive(message = "{voucher.price.positive}")
     private Double price;
 
-    @NotNull(message = "Tour type is required")
+    @NotNull(message = "{voucher.tourType.required}")
     private TourType tourType;
 
-    @NotNull(message = "Transfer type is required")
+    @NotNull(message = "{voucher.transferType.required}")
     private TransferType transferType;
 
-    @NotNull(message = "Hotel type is required")
+    @NotNull(message = "{voucher.hotelType.required}")
     private HotelType hotelType;
 
     private VoucherStatus status;
