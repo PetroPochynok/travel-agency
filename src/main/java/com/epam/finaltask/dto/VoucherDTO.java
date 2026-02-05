@@ -33,10 +33,11 @@ public class VoucherDTO {
 
     private VoucherStatus status;
 
-    @NotNull
+    @NotNull(message = "{voucher.arrivalDate.required}")
+    @FutureOrPresent(message = "{voucher.arrivalDate.notPast}")
     private LocalDate arrivalDate;
 
-    @NotNull
+    @NotNull(message = "{voucher.evictionDate.required}")
     private LocalDate evictionDate;
 
     private UUID userId;
