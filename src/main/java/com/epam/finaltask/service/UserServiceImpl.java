@@ -10,9 +10,7 @@ import java.util.UUID;
 import com.epam.finaltask.dto.UserDTO;
 import com.epam.finaltask.exception.TransactionException;
 import com.epam.finaltask.exception.UserNotFoundException;
-import com.epam.finaltask.exception.UsernameAlreadyExistsException;
 import com.epam.finaltask.mapper.UserMapper;
-import com.epam.finaltask.model.Role;
 import com.epam.finaltask.model.User;
 import com.epam.finaltask.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -35,25 +33,6 @@ public class UserServiceImpl implements UserService {
 		this.passwordEncoder = passwordEncoder;
 	}
 
-	@Override
-	@Transactional
-	public UserDTO register(UserDTO userDTO) {
-		if (userRepository.existsByUsername(userDTO.getUsername())) {
-			throw new UsernameAlreadyExistsException("Username already exists");
-		}
-
-		User user = userMapper.toUser(userDTO);
-
-		user.setId(UUID.randomUUID());
-		user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-		user.setRole(Role.CUSTOMER);
-		user.setBalance(BigDecimal.valueOf(0));
-		user.setActive(true);
-
-		User savedUser = userRepository.save(user);
-
-		return userMapper.toUserDTO(savedUser);
-	}
 
 	@Override
 	@Transactional

@@ -7,7 +7,6 @@ import java.util.UUID;
 import com.epam.finaltask.dto.UserDTO;
 
 public interface UserService {
-    UserDTO register(UserDTO userDTO);
     UserDTO updateUser(String username, UserDTO userDTO);
     UserDTO getUserById(UUID id);
     List<UserDTO> findAllUsers();

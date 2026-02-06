@@ -47,76 +47,6 @@ class UserServiceImplTest {
 
     @Test
     @Order(1)
-    void register_success() {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUsername("customer");
-        userDTO.setPassword("12345");
-
-        User user = new User();
-        user.setUsername("customer");
-        UUID userId = UUID.randomUUID();
-
-        when(userRepository.existsByUsername("customer")).thenReturn(false);
-        when(userMapper.toUser(userDTO)).thenReturn(user);
-        when(passwordEncoder.encode("12345")).thenReturn("ENCODED");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-            User savedUser = invocation.getArgument(0);
-            savedUser.setId(userId);
-            return savedUser;
-        });
-        when(userMapper.toUserDTO(user)).thenReturn(userDTO);
-
-        UserDTO result = userService.register(userDTO);
-
-        assertNotNull(result);
-        verify(userRepository).save(any(User.class));
-
-        assertNotNull(user.getId());
-        assertEquals(Role.CUSTOMER, user.getRole());
-        assertEquals(BigDecimal.ZERO, user.getBalance());
-        assertTrue(user.isActive());
-        assertEquals("ENCODED", user.getPassword());
-    }
-
-    @Test
-    @Order(2)
-    void register_usernameAlreadyExists_throwException() {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUsername("customer");
-
-        when(userRepository.existsByUsername("customer")).thenReturn(true);
-
-        assertThrows(
-                UsernameAlreadyExistsException.class,
-                () -> userService.register(userDTO)
-        );
-
-        verify(userRepository, never()).save(any(User.class));
-    }
-
-    @Test
-    @Order(3)
-    void register_passwordIsEncoded() {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUsername("customer");
-        userDTO.setPassword("12345");
-
-        User user = new User();
-
-        when(userRepository.existsByUsername("customer")).thenReturn(false);
-        when(userMapper.toUser(userDTO)).thenReturn(user);
-        when(passwordEncoder.encode("12345")).thenReturn("ENCODED");
-        when(userRepository.save(any(User.class))).thenReturn(user);
-        when(userMapper.toUserDTO(any(User.class))).thenReturn(userDTO);
-
-        userService.register(userDTO);
-
-        verify(passwordEncoder).encode("12345");
-        assertEquals("ENCODED", user.getPassword());
-    }
-
-    @Test
-    @Order(4)
     void changeUserActive_success() {
         User user = new User();
         UUID userId = UUID.randomUUID();
@@ -137,7 +67,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(5)
+    @Order(2)
     void changeUserActive_userNotFound_throwException() {
         UUID userId = UUID.randomUUID();
 
@@ -153,7 +83,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(6)
+    @Order(3)
     void updateUser_success() {
         String username = "customer";
 
@@ -198,7 +128,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(7)
+    @Order(4)
     void updateUser_userNotFound_throwException() {
         String username = "nonexistent";
         UserDTO userDTO = new UserDTO();
@@ -216,7 +146,7 @@ class UserServiceImplTest {
 
 
     @Test
-    @Order(8)
+    @Order(5)
     void updateUser_partialUpdate_ignoresNulls() {
         String username = "customer";
 
@@ -250,7 +180,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(9)
+    @Order(6)
     void getUserByUsername_success() {
         String username = "customer";
 
@@ -273,7 +203,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(10)
+    @Order(7)
     void getUserByUsername_userNotFound_throwException() {
         String username = "nonexistent";
 
@@ -290,7 +220,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(11)
+    @Order(8)
     void getUserById_success() {
         UUID userId = UUID.randomUUID();
 
@@ -313,7 +243,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(12)
+    @Order(9)
     void getUserById_userNotFound_throwException() {
         UUID userId = UUID.randomUUID();
 
@@ -330,7 +260,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(13)
+    @Order(10)
     void findAllUsers_success() {
         User user1 = new User();
         user1.setId(UUID.randomUUID());
@@ -357,7 +287,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(14)
+    @Order(11)
     void findAllUsers_emptyList() {
         when(userRepository.findAll()).thenReturn(Collections.emptyList());
 
@@ -370,7 +300,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(15)
+    @Order(12)
     void deposit_success() {
         String username = "customer";
         BigDecimal depositAmount = BigDecimal.valueOf(300);
@@ -395,7 +325,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(16)
+    @Order(13)
     void deposit_userNotFound_throwsException() {
         when(userRepository.findUserByUsername("unknown")).thenReturn(Optional.empty());
 
@@ -405,7 +335,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(17)
+    @Order(14)
     void deposit_negativeAmount_throwsTransactionException() {
         when(userRepository.findUserByUsername("customer")).thenReturn(Optional.of(new User()));
 
@@ -415,7 +345,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(18)
+    @Order(15)
     void withdraw_success() {
         String username = "customer";
         BigDecimal withdrawAmount = BigDecimal.valueOf(200);
@@ -436,7 +366,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(19)
+    @Order(16)
     void withdraw_userNotFound_throwsException() {
         when(userRepository.findUserByUsername("unknown")).thenReturn(Optional.empty());
 
@@ -446,7 +376,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(20)
+    @Order(17)
     void withdraw_negativeAmount_throwsTransactionException() {
         User user = new User();
         user.setBalance(BigDecimal.valueOf(500));
@@ -462,7 +392,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(21)
+    @Order(18)
     void withdraw_invalidCard_throwsTransactionException() {
         User user = new User();
         user.setBalance(BigDecimal.valueOf(500));
@@ -478,7 +408,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(22)
+    @Order(19)
     void withdraw_insufficientBalance_throwsTransactionException() {
         User user = new User();
         user.setBalance(BigDecimal.valueOf(100));
