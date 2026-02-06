@@ -1,6 +1,7 @@
 package com.epam.finaltask.dto;
 
 
+import com.epam.finaltask.annotation.Sensitive;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
@@ -30,6 +31,7 @@ public class RegisterRequest {
             regexp = "^.{5,}$",
             message = "{user.password.invalid}"
     )
+    @Sensitive
     private String password;
 
     @NotBlank(message = "{user.confirmPassword.required}")
