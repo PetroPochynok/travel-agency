@@ -25,7 +25,6 @@ public class UserRestController {
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    @Transactional(readOnly = true)
     public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         UserDTO dto = userService.getUserByUsername(userDetails.getUsername());
         return ResponseEntity.ok(dto);
@@ -33,7 +32,6 @@ public class UserRestController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<UserDTO>>> findAllUsers() {
         List<UserDTO> users = userService.findAllUsers();
 
@@ -46,7 +44,6 @@ public class UserRestController {
 
     @PatchMapping("/{id}/active")
     @PreAuthorize("hasRole('ADMIN')")
-    @Transactional
     public ResponseEntity<ApiResponse<UserDTO>> changeUserActive(@PathVariable String id,
                                                                  @RequestBody(required = false) Map<String, Object> body) {
         boolean active = body != null && body.get("active") instanceof Boolean ? (Boolean) body.get("active") : true;

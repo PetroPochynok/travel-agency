@@ -15,13 +15,12 @@ import com.epam.finaltask.mapper.UserMapper;
 import com.epam.finaltask.model.Role;
 import com.epam.finaltask.model.User;
 import com.epam.finaltask.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
 public class UserServiceImpl implements UserService {
 
 	private final UserRepository userRepository;
@@ -37,6 +36,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional
 	public UserDTO register(UserDTO userDTO) {
 		if (userRepository.existsByUsername(userDTO.getUsername())) {
 			throw new UsernameAlreadyExistsException("Username already exists");
@@ -56,6 +56,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional
 	public UserDTO changeUserActive(UUID id, boolean active) {
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -67,6 +68,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional
 	public UserDTO updateUser(String username, UserDTO userDTO) {
 		User existingUser = userRepository.findUserByUsername(username)
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -87,6 +89,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public UserDTO getUserByUsername(String username) {
 		User user = userRepository.findUserByUsername(username)
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -94,6 +97,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public UserDTO getUserById(UUID id) {
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -101,6 +105,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<UserDTO> findAllUsers() {
 		return userRepository.findAll()
 				.stream()
@@ -108,7 +113,8 @@ public class UserServiceImpl implements UserService {
 				.toList();
 	}
 
-
+	@Override
+	@Transactional
 	public UserDTO deposit(String username, BigDecimal amount, String cardNumber, String expiry, String cvv) {
 		User user = userRepository.findUserByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -121,6 +127,8 @@ public class UserServiceImpl implements UserService {
 		return mapToUserDTO(user);
 	}
 
+	@Override
+	@Transactional
 	public UserDTO withdraw(String username, BigDecimal amount, String cardNumber) {
 		User user = userRepository.findUserByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
