@@ -13,26 +13,19 @@ import com.epam.finaltask.exception.UserNotFoundException;
 import com.epam.finaltask.mapper.UserMapper;
 import com.epam.finaltask.model.User;
 import com.epam.finaltask.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
 	private final UserRepository userRepository;
 	private final UserMapper userMapper;
 	private final PasswordEncoder passwordEncoder;
-
-	public UserServiceImpl(UserRepository userRepository,
-						   UserMapper userMapper,
-						   PasswordEncoder passwordEncoder) {
-		this.userRepository = userRepository;
-		this.userMapper = userMapper;
-		this.passwordEncoder = passwordEncoder;
-	}
-
 
 	@Override
 	@Transactional

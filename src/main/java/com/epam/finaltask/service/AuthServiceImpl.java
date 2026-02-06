@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -28,6 +29,7 @@ public class AuthServiceImpl implements AuthService{
     private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public Map<String, Object> login(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
@@ -45,6 +47,7 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
+    @Transactional
     public void register(RegisterRequest request) {
 
         if (!request.getPassword().equals(request.getConfirmPassword())) {

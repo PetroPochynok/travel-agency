@@ -6,6 +6,7 @@ import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.*;
 import com.epam.finaltask.repository.UserRepository;
 import com.epam.finaltask.repository.VoucherRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,20 +22,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class VoucherServiceImpl implements VoucherService {
 
     private final VoucherRepository voucherRepository;
     private final UserRepository userRepository;
     private final VoucherMapper voucherMapper;
-
-    public VoucherServiceImpl(
-            VoucherRepository voucherRepository,
-            UserRepository userRepository,
-            VoucherMapper voucherMapper) {
-        this.voucherRepository = voucherRepository;
-        this.userRepository = userRepository;
-        this.voucherMapper = voucherMapper;
-    }
 
     @Override
     @Transactional
