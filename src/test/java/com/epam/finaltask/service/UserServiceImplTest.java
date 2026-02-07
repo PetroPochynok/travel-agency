@@ -1,11 +1,10 @@
 package com.epam.finaltask.service;
 
 import com.epam.finaltask.dto.UserDTO;
+import com.epam.finaltask.exception.EmailAlreadyExistsException;
 import com.epam.finaltask.exception.TransactionException;
 import com.epam.finaltask.exception.UserNotFoundException;
-import com.epam.finaltask.exception.UsernameAlreadyExistsException;
 import com.epam.finaltask.mapper.UserMapper;
-import com.epam.finaltask.model.Role;
 import com.epam.finaltask.model.User;
 import com.epam.finaltask.repository.UserRepository;
 import org.junit.jupiter.api.MethodOrderer;
@@ -88,28 +87,35 @@ class UserServiceImplTest {
         String username = "customer";
 
         UserDTO userDTO = new UserDTO();
+        userDTO.setFirstName("Updated");
+        userDTO.setLastName("User");
+        userDTO.setEmail("updated@example.com");
         userDTO.setPassword("newPass");
         userDTO.setPhoneNumber("1234567890");
-        userDTO.setBalance(BigDecimal.valueOf(100));
 
         User existingUser = new User();
         existingUser.setUsername(username);
+        existingUser.setEmail("old@example.com");
         existingUser.setPassword("oldPass");
         existingUser.setPhoneNumber("0000000000");
-        existingUser.setBalance(BigDecimal.ZERO);
 
         User savedUser = new User();
         savedUser.setUsername(username);
+        savedUser.setFirstName("Updated");
+        savedUser.setLastName("User");
+        savedUser.setEmail("updated@example.com");
         savedUser.setPassword("encodedPass");
         savedUser.setPhoneNumber("1234567890");
-        savedUser.setBalance(BigDecimal.valueOf(100));
 
         UserDTO returnedDTO = new UserDTO();
+        returnedDTO.setFirstName("Updated");
+        returnedDTO.setLastName("User");
+        returnedDTO.setEmail("updated@example.com");
         returnedDTO.setPassword("encodedPass");
         returnedDTO.setPhoneNumber("1234567890");
-        returnedDTO.setBalance(BigDecimal.valueOf(100));
 
         when(userRepository.findUserByUsername(username)).thenReturn(Optional.of(existingUser));
+        when(userRepository.existsByEmail("updated@example.com")).thenReturn(false);
         when(passwordEncoder.encode("newPass")).thenReturn("encodedPass");
         when(userRepository.save(existingUser)).thenReturn(savedUser);
         when(userMapper.toUserDTO(savedUser)).thenReturn(returnedDTO);
@@ -117,11 +123,14 @@ class UserServiceImplTest {
         UserDTO result = userService.updateUser(username, userDTO);
 
         assertNotNull(result);
+        assertEquals("Updated", result.getFirstName());
+        assertEquals("User", result.getLastName());
+        assertEquals("updated@example.com", result.getEmail());
         assertEquals("encodedPass", result.getPassword());
         assertEquals("1234567890", result.getPhoneNumber());
-        assertEquals(BigDecimal.valueOf(100), result.getBalance());
 
         verify(userRepository).findUserByUsername(username);
+        verify(userRepository).existsByEmail("updated@example.com");
         verify(passwordEncoder).encode("newPass");
         verify(userRepository).save(existingUser);
         verify(userMapper).toUserDTO(savedUser);
@@ -152,19 +161,23 @@ class UserServiceImplTest {
 
         UserDTO userDTO = new UserDTO();
         userDTO.setPassword(null);
+        userDTO.setEmail(null);
         userDTO.setPhoneNumber("5555555");
 
         User existingUser = new User();
         existingUser.setUsername(username);
+        existingUser.setEmail("existing@example.com");
         existingUser.setPassword("oldPass");
         existingUser.setPhoneNumber("0000000");
 
         User savedUser = new User();
         savedUser.setUsername(username);
+        savedUser.setEmail("existing@example.com");
         savedUser.setPassword("oldPass");
         savedUser.setPhoneNumber("5555555");
 
         UserDTO returnedDTO = new UserDTO();
+        returnedDTO.setEmail("existing@example.com");
         returnedDTO.setPassword("oldPass");
         returnedDTO.setPhoneNumber("5555555");
 
@@ -174,6 +187,7 @@ class UserServiceImplTest {
 
         UserDTO result = userService.updateUser(username, userDTO);
 
+        assertEquals("existing@example.com", result.getEmail());
         assertEquals("oldPass", result.getPassword());
         assertEquals("5555555", result.getPhoneNumber());
         verify(passwordEncoder, never()).encode(any());
@@ -181,6 +195,32 @@ class UserServiceImplTest {
 
     @Test
     @Order(6)
+    void updateUser_emailAlreadyExists_throwsException() {
+        String username = "customer";
+
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("taken@example.com");
+
+        User existingUser = new User();
+        existingUser.setUsername(username);
+        existingUser.setEmail("old@example.com");
+
+        when(userRepository.findUserByUsername(username)).thenReturn(Optional.of(existingUser));
+        when(userRepository.existsByEmail("taken@example.com")).thenReturn(true);
+
+        assertThrows(
+                EmailAlreadyExistsException.class,
+                () -> userService.updateUser(username, userDTO)
+        );
+
+        verify(userRepository).findUserByUsername(username);
+        verify(userRepository).existsByEmail("taken@example.com");
+        verify(userRepository, never()).save(any(User.class));
+        verifyNoInteractions(passwordEncoder, userMapper);
+    }
+
+    @Test
+    @Order(7)
     void getUserByUsername_success() {
         String username = "customer";
 
@@ -203,7 +243,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(7)
+    @Order(8)
     void getUserByUsername_userNotFound_throwException() {
         String username = "nonexistent";
 
@@ -220,7 +260,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(8)
+    @Order(9)
     void getUserById_success() {
         UUID userId = UUID.randomUUID();
 
@@ -243,7 +283,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(9)
+    @Order(10)
     void getUserById_userNotFound_throwException() {
         UUID userId = UUID.randomUUID();
 
@@ -260,7 +300,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(10)
+    @Order(11)
     void findAllUsers_success() {
         User user1 = new User();
         user1.setId(UUID.randomUUID());
@@ -287,7 +327,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(11)
+    @Order(12)
     void findAllUsers_emptyList() {
         when(userRepository.findAll()).thenReturn(Collections.emptyList());
 
@@ -300,7 +340,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(12)
+    @Order(13)
     void deposit_success() {
         String username = "customer";
         BigDecimal depositAmount = BigDecimal.valueOf(300);
@@ -325,7 +365,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(13)
+    @Order(14)
     void deposit_userNotFound_throwsException() {
         when(userRepository.findUserByUsername("unknown")).thenReturn(Optional.empty());
 
@@ -335,7 +375,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(14)
+    @Order(15)
     void deposit_negativeAmount_throwsTransactionException() {
         when(userRepository.findUserByUsername("customer")).thenReturn(Optional.of(new User()));
 
@@ -345,7 +385,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(15)
+    @Order(16)
     void withdraw_success() {
         String username = "customer";
         BigDecimal withdrawAmount = BigDecimal.valueOf(200);
@@ -366,7 +406,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(16)
+    @Order(17)
     void withdraw_userNotFound_throwsException() {
         when(userRepository.findUserByUsername("unknown")).thenReturn(Optional.empty());
 
@@ -376,7 +416,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(17)
+    @Order(18)
     void withdraw_negativeAmount_throwsTransactionException() {
         User user = new User();
         user.setBalance(BigDecimal.valueOf(500));
@@ -392,7 +432,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(18)
+    @Order(19)
     void withdraw_invalidCard_throwsTransactionException() {
         User user = new User();
         user.setBalance(BigDecimal.valueOf(500));
@@ -408,7 +448,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    @Order(19)
+    @Order(20)
     void withdraw_insufficientBalance_throwsTransactionException() {
         User user = new User();
         user.setBalance(BigDecimal.valueOf(100));
@@ -416,6 +456,102 @@ class UserServiceImplTest {
 
         assertThrows(TransactionException.class, () ->
                 userService.withdraw("customer", BigDecimal.valueOf(200), "1234567812345678")
+        );
+    }
+
+    @Test
+    @Order(21)
+    void changePassword_success() {
+        String username = "customer";
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword("encodedOldPass");
+
+        when(userRepository.findUserByUsername(username)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("oldPass", "encodedOldPass")).thenReturn(true);
+        when(passwordEncoder.encode("newPass")).thenReturn("encodedNewPass");
+
+        userService.changePassword(username, "oldPass", "newPass");
+
+        assertEquals("encodedNewPass", user.getPassword());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @Order(22)
+    void changePassword_invalidCurrentPassword_throwsException() {
+        String username = "customer";
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword("encodedOldPass");
+
+        when(userRepository.findUserByUsername(username)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongPass", "encodedOldPass")).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                userService.changePassword(username, "wrongPass", "newPass")
+        );
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @Order(23)
+    void changePassword_userNotFound_throwsException() {
+        when(userRepository.findUserByUsername("missing")).thenReturn(Optional.empty());
+
+        assertThrows(UsernameNotFoundException.class, () ->
+                userService.changePassword("missing", "oldPass", "newPass")
+        );
+    }
+
+    @Test
+    @Order(24)
+    void isEmailTaken_blankEmail_returnsFalse() {
+        assertFalse(userService.isEmailTaken("   ", "customer"));
+        verifyNoInteractions(userRepository);
+    }
+
+    @Test
+    @Order(25)
+    void isEmailTaken_sameEmail_returnsFalse() {
+        String username = "customer";
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail("user@example.com");
+
+        when(userRepository.findUserByUsername(username)).thenReturn(Optional.of(user));
+
+        assertFalse(userService.isEmailTaken("user@example.com", username));
+
+        verify(userRepository).findUserByUsername(username);
+        verify(userRepository, never()).existsByEmail(any());
+    }
+
+    @Test
+    @Order(26)
+    void isEmailTaken_differentEmail_checksRepository() {
+        String username = "customer";
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail("user@example.com");
+
+        when(userRepository.findUserByUsername(username)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail("new@example.com")).thenReturn(true);
+
+        assertTrue(userService.isEmailTaken("new@example.com", username));
+
+        verify(userRepository).findUserByUsername(username);
+        verify(userRepository).existsByEmail("new@example.com");
+    }
+
+    @Test
+    @Order(27)
+    void isEmailTaken_userNotFound_throwsException() {
+        when(userRepository.findUserByUsername("missing")).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () ->
+                userService.isEmailTaken("new@example.com", "missing")
         );
     }
 
