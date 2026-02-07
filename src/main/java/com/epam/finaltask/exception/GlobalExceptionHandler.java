@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -39,6 +41,14 @@ public class GlobalExceptionHandler {
                 .body(new ApiError(localizedMessage, LocalDateTime.now()));
     }
 
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<ApiError> handleEmailExists(EmailAlreadyExistsException ex, Locale locale) {
+        String localizedMessage = messageSource.getMessage(ex.getMessage(), null, ex.getMessage(), locale);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiError("email: " + localizedMessage, LocalDateTime.now()));
+    }
+
     @ExceptionHandler(InvalidDatesException.class)
     public ResponseEntity<ApiError> handleInvalidDates(InvalidDatesException ex) {
         return ResponseEntity
@@ -61,17 +71,15 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleValidationException(MethodArgumentNotValidException ex) {
-
-        String message = ex.getBindingResult()
+    public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex, Locale locale) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult()
                 .getFieldErrors()
-                .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .findFirst()
-                .orElse("Validation error");
+                .forEach(error -> errors.put(error.getField(), messageSource.getMessage(error, locale)));
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ApiError(message, LocalDateTime.now()));
+                .body(errors);
     }
+
 }

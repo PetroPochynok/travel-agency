@@ -80,4 +80,10 @@ public class PageController {
     public String withdrawPage(){
         return "withdraw";
     }
+
+    @GetMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
+    public String profilePage() {
+        return "profile";
+    }
 }

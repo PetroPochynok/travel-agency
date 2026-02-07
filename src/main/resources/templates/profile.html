@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{profile.title}">Profile</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body { background-color: #eef4fb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .top-bar { background: #ffffff; padding: 15px 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
+        .top-bar h4 { margin: 0; color: #2c3e50; font-weight: 600; }
+        .top-right { display: flex; align-items: center; gap: 15px; }
+        .user-name { font-weight: 600; color: #2c3e50; }
+        .btn-logout, .btn-back-catalog { padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-logout { background-color: #e74c3c; color: white; }
+        .btn-logout:hover { background-color: #c0392b; }
+        .btn-back-catalog { background-color: #2980b9; color: white; }
+        .btn-back-catalog:hover { background-color: #1c5980; }
+        .btn-edit { background-color: #27ae60; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; }
+        .btn-edit:hover { background-color: #1e8449; }
+        .btn-save { background-color: #2980b9; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; }
+        .btn-save:hover { background-color: #1c5980; }
+        .btn-cancel { background-color: #e74c3c; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; }
+        .btn-cancel:hover { background-color: #c0392b; }
+        .lang-switch { text-align: center; margin: 15px 0; }
+        .lang-switch a { margin: 0 5px; padding: 5px 10px; border-radius: 5px; background-color: #27ae60; color: white; font-weight: 600; text-decoration: none; font-size: 0.85rem; }
+        .lang-switch a:hover { background-color: #1e8449; }
+        .profile-card { background: #ffffff; margin-top: 10px; padding: 25px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+        .profile-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .password-card { margin-top: 20px; }
+        #message-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        #message-box { background: white; padding: 30px 40px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); text-align: center; max-width: 400px; font-size: 1.1rem; }
+        #message-box.success { border-left: 6px solid #27ae60; }
+        #message-box.error { border-left: 6px solid #e74c3c; }
+        #message-box button { margin-top: 15px; padding: 6px 14px; border: none; border-radius: 6px; background-color: #2980b9; color: white; font-weight: 600; cursor: pointer; }
+        #message-box button:hover { background-color: #1c5980; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <h4>🌍 Travel Agency</h4>
+    <div class="top-right">
+        <div class="user-name" id="userName" th:text="#{catalog.userName}">User Name</div>
+        <div style="position: relative;">
+            <button id="balanceBtn" class="btn btn-outline-success" style="margin-left:8px;">
+                <span th:text="#{user.balance}">Balance</span>: <span id="balanceAmount">0.00 $</span> ▾
+            </button>
+            <div id="balanceDropdown"
+                 style="display:none; position:absolute; right:0; background:white; border:1px solid #ddd; padding:8px; border-radius:6px; box-shadow:0 6px 20px rgba(0,0,0,0.08);">
+                <div><a href="#" onclick="goDeposit(); return false;" th:text="#{balance.deposit}">Deposit</a></div>
+                <div style="margin-top:6px;"><a href="#" onclick="goWithdraw(); return false;" th:text="#{balance.withdraw}">Withdraw</a></div>
+            </div>
+        </div>
+        <button class="btn-back-catalog" onclick="goBackCatalog()" th:text="#{profile.backCatalog}">Back to Catalog</button>
+        <button class="btn-logout" onclick="logout()" th:text="#{catalog.logout}">Logout</button>
+    </div>
+</div>
+
+<div class="lang-switch">
+    <a th:href="@{/profile(lang='en')}">EN</a>
+    <a th:href="@{/profile(lang='uk')}">UA</a>
+    <a th:href="@{/profile(lang='fr')}">FR</a>
+    <a th:href="@{/profile(lang='de')}">DE</a>
+    <a th:href="@{/profile(lang='es')}">ES</a>
+</div>
+
+<div class="container">
+    <div class="profile-card">
+        <h3 class="mb-4" th:text="#{profile.title}">Profile</h3>
+        <form>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="username" th:text="#{label.username}">Username</label>
+                    <input type="text" class="form-control" id="username" disabled>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="balance" th:text="#{user.balance}">Balance</label>
+                    <input type="text" class="form-control" id="balance" disabled>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="firstName" th:text="#{label.firstName}">First Name</label>
+                    <input type="text" class="form-control editable" id="firstName" disabled>
+                    <span id="firstNameError" class="text-danger small"></span>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="lastName" th:text="#{label.lastName}">Last Name</label>
+                    <input type="text" class="form-control editable" id="lastName" disabled>
+                    <span id="lastNameError" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="email" th:text="#{label.email}">Email</label>
+                    <input type="email" class="form-control editable" id="email" disabled>
+                    <span id="emailError" class="text-danger small"></span>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="phoneNumber" th:text="#{label.phoneNumber}">Phone Number</label>
+                    <input type="text" class="form-control editable" id="phoneNumber" disabled>
+                    <span id="phoneNumberError" class="text-danger small"></span>
+                </div>
+            </div>
+        </form>
+        <div class="profile-actions">
+            <button id="editBtn" class="btn-edit" type="button" th:text="#{profile.editButton}">Edit Profile</button>
+            <button id="saveBtn" class="btn-save" type="button" th:text="#{profile.saveButton}" style="display:none;">Save</button>
+            <button id="cancelBtn" class="btn-cancel" type="button" th:text="#{profile.cancelButton}" style="display:none;">Cancel</button>
+        </div>
+    </div>
+    <div class="profile-card password-card">
+        <h4 class="mb-3" th:text="#{profile.password.title}">Change Password</h4>
+        <form>
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="currentPassword" th:text="#{profile.password.current}">Current Password</label>
+                    <input type="password" class="form-control password-editable" id="currentPassword" disabled>
+                    <span id="currentPasswordError" class="text-danger small"></span>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="newPassword" th:text="#{profile.password.new}">New Password</label>
+                    <input type="password" class="form-control password-editable" id="newPassword" disabled>
+                    <span id="newPasswordError" class="text-danger small"></span>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="confirmPassword" th:text="#{profile.password.confirm}">Confirm Password</label>
+                    <input type="password" class="form-control password-editable" id="confirmPassword" disabled>
+                    <span id="confirmPasswordError" class="text-danger small"></span>
+                </div>
+            </div>
+        </form>
+        <div class="profile-actions">
+            <button id="updatePasswordBtn" class="btn-save" type="button" style="display:none;" th:text="#{profile.password.save}">Update Password</button>
+        </div>
+    </div>
+</div>
+
+<div id="message-overlay">
+    <div id="message-box">
+        <div id="message-text"></div>
+        <button onclick="closeMessage()">OK</button>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const TEXTS = {
+        updateSuccess: [[#{profile.updateSuccess}]],
+        updateFailed: [[#{profile.updateFailed}]],
+        loadFailed: [[#{profile.loadFailed}]],
+        passwordUpdated: [[#{profile.password.updated}]],
+        passwordMismatch: [[#{profile.password.mismatch}]],
+        passwordInvalid: [[#{profile.password.invalidCurrent}]],
+        passwordFailed: [[#{profile.password.failed}]]
+    };
+
+    let currentUser = null;
+
+    function showMessage(msg, type='success') {
+        const overlay = document.getElementById('message-overlay');
+        const box = document.getElementById('message-box');
+        const text = document.getElementById('message-text');
+        text.innerText = msg;
+        box.className = type;
+        overlay.style.display = 'flex';
+    }
+
+    function closeMessage() {
+        document.getElementById('message-overlay').style.display = 'none';
+    }
+
+    function toggleEditMode(enabled) {
+        document.querySelectorAll('.editable').forEach((input) => {
+            input.disabled = !enabled;
+        });
+        document.querySelectorAll('.password-editable').forEach((input) => {
+            input.disabled = !enabled;
+        });
+        document.getElementById('editBtn').style.display = enabled ? 'none' : 'inline-block';
+        document.getElementById('saveBtn').style.display = enabled ? 'inline-block' : 'none';
+        document.getElementById('cancelBtn').style.display = enabled ? 'inline-block' : 'none';
+        document.getElementById('updatePasswordBtn').style.display = enabled ? 'inline-block' : 'none';
+    }
+
+    function setFormValues(user) {
+        document.getElementById('username').value = user.username || '';
+        document.getElementById('balance').value = user.balance != null ? `${user.balance.toFixed(2)} $` : '';
+        document.getElementById('firstName').value = user.firstName || '';
+        document.getElementById('lastName').value = user.lastName || '';
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('phoneNumber').value = user.phoneNumber || '';
+        document.getElementById('userName').innerText = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || '';
+        const balEl = document.getElementById('balanceAmount');
+        if (balEl && user.balance != null) balEl.innerText = `${user.balance.toFixed(2)}$`;
+    }
+
+    async function loadUserInfo() {
+        const token = localStorage.getItem('jwt');
+        try {
+            const headers = {};
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            const response = await fetch('/api/users/me', { headers, credentials: 'same-origin' });
+            if (!response.ok) throw new Error('Failed');
+            currentUser = await response.json();
+            setFormValues(currentUser);
+        } catch (e) {
+            showMessage(TEXTS.loadFailed, 'error');
+        }
+    }
+
+    async function saveProfile() {
+        const token = localStorage.getItem('jwt');
+        document.querySelectorAll('#firstNameError, #lastNameError, #emailError, #phoneNumberError')
+            .forEach((el) => { el.innerText = ''; });
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phoneNumber = document.getElementById('phoneNumber').value.trim();
+        const payload = {
+            firstName: firstName || currentUser?.firstName || '',
+            lastName: lastName || currentUser?.lastName || '',
+            email: email || currentUser?.email || '',
+            phoneNumber: phoneNumber || currentUser?.phoneNumber || ''
+        };
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            const response = await fetch('/api/users/me', {
+                method: 'PATCH',
+                headers,
+                credentials: 'same-origin',
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                if (typeof data === 'object' && !data.message) {
+                    Object.keys(data).forEach((field) => {
+                        const errorSpan = document.getElementById(field + 'Error');
+                        if (errorSpan) errorSpan.innerText = data[field];
+                    });
+                    return;
+                }
+                if (data.message) {
+                    const parts = data.message.split(':');
+                    if (parts.length > 1) {
+                        const field = parts[0].trim();
+                        const errorSpan = document.getElementById(field + 'Error');
+                        if (errorSpan) {
+                            errorSpan.innerText = parts.slice(1).join(':').trim();
+                            return;
+                        }
+                    }
+                }
+                throw new Error(data.message || 'Failed');
+            }
+            currentUser = data;
+            setFormValues(currentUser);
+            toggleEditMode(false);
+            showMessage(TEXTS.updateSuccess, 'success');
+        } catch (e) {
+            showMessage(TEXTS.updateFailed, 'error');
+        }
+    }
+
+    function cancelEdit() {
+        if (currentUser) setFormValues(currentUser);
+        clearPasswordFields();
+        toggleEditMode(false);
+    }
+
+    function clearPasswordFields() {
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+    }
+
+    async function updatePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    document.querySelectorAll('#currentPasswordError, #newPasswordError, #confirmPasswordError')
+        .forEach((el) => { el.innerText = ''; });
+    if (!currentPassword) {
+        document.getElementById('currentPasswordError').innerText = TEXTS.passwordInvalid;
+    }
+    if (!newPassword || !confirmPassword || newPassword !== confirmPassword) {
+        document.getElementById('confirmPasswordError').innerText = TEXTS.passwordMismatch;
+    }
+    if (document.getElementById('currentPasswordError').innerText
+        || document.getElementById('confirmPasswordError').innerText) {
+    }
+    const token = localStorage.getItem('jwt');
+    try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        const response = await fetch('/api/users/me/password', {
+            method: 'POST',
+            headers,
+            credentials: 'same-origin',
+            body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            if (typeof data === 'object' && !data.message) {
+                Object.keys(data).forEach((field) => {
+                    const errorSpan = document.getElementById(field + 'Error');
+                    if (errorSpan) errorSpan.innerText = data[field];
+                });
+                return;
+            }
+            if (data.message) {
+                const parts = data.message.split(':');
+                if (parts.length > 1) {
+                    const field = parts[0].trim();
+                    const errorSpan = document.getElementById(field + 'Error');
+                    if (errorSpan) {
+                        errorSpan.innerText = parts.slice(1).join(':').trim();
+                        return;
+                    }
+                }
+            }
+            if (data.message === 'profile.password.invalidCurrent') {
+                document.getElementById('currentPasswordError').innerText = TEXTS.passwordInvalid;
+                return;
+            }
+            if (data.message === 'profile.password.mismatch') {
+                document.getElementById('confirmPasswordError').innerText = TEXTS.passwordMismatch;
+                return;
+            }
+            showMessage(TEXTS.passwordFailed, 'error');
+            return;
+        }
+        clearPasswordFields();
+        showMessage(TEXTS.passwordUpdated, 'success');
+    } catch (e) {
+        showMessage(TEXTS.passwordFailed, 'error');
+    }
+}
+
+    function goBackCatalog() {
+        window.location.href = '/catalog';
+    }
+
+    function goDeposit() { window.location.href = '/deposit'; }
+    function goWithdraw() { window.location.href = '/withdraw'; }
+
+    function logout() {
+        try { fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch(e){}
+        localStorage.removeItem('jwt');
+        showMessage([[#{catalog.logoutSuccess}]], 'success');
+        setTimeout(()=>window.location.href='/login',1000);
+    }
+
+    document.getElementById('editBtn').addEventListener('click', () => toggleEditMode(true));
+    document.getElementById('saveBtn').addEventListener('click', saveProfile);
+    document.getElementById('cancelBtn').addEventListener('click', cancelEdit);
+    document.getElementById('updatePasswordBtn').addEventListener('click', updatePassword);
+
+    const balanceBtn = document.getElementById('balanceBtn');
+    if (balanceBtn) {
+        balanceBtn.addEventListener('click', () => {
+            const dd = document.getElementById('balanceDropdown');
+            if (!dd) return;
+            dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
+    loadUserInfo();
+</script>
+</body>
+</html>
