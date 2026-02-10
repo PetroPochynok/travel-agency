@@ -38,7 +38,7 @@ public class RegisterRequest {
     private String confirmPassword;
 
     @Pattern(
-            regexp = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+            regexp = "^[A-Za-z][^\\s@]*@[^\\s@]+\\.[^\\s@]+$",
             message = "{user.email.invalid}"
     )
     private String email;
