@@ -98,6 +98,10 @@
     </div>
 </div>
 
+<span id="validationErrorText" th:text="#{admin.createVoucher.validationError}" hidden>Validation error</span>
+<span id="unexpectedErrorText" th:text="#{common.unexpectedError}" hidden>Unexpected error occurred</span>
+<span id="invalidYearText" th:text="#{voucher.date.yearMax4}" hidden>Year must contain exactly 4 digits</span>
+
 <script>
     function goAdmin(){ window.location.href='/catalog'; }
     function closeMessage(){ document.getElementById('message-overlay').style.display='none'; }
@@ -114,7 +118,17 @@
         document.getElementById('message-overlay').style.display = 'flex';
     }
 
+
+    function isValidDateInput(value){
+        if (!value) return true;
+        return /^\d{4}-\d{2}-\d{2}$/.test(value);
+    }
+
     async function createVoucher(){
+        const validationErrorMsg = document.getElementById('validationErrorText')?.innerText || 'Validation error';
+        const unexpectedErrorMsg = document.getElementById('unexpectedErrorText')?.innerText || 'Unexpected error occurred';
+        const invalidYearMsg = document.getElementById('invalidYearText')?.innerText || 'Year must contain exactly 4 digits';
+
         const body = {
             title: title.value,
             description: description.value,
@@ -126,21 +140,47 @@
             evictionDate: evictionDate.value
         };
 
-        const resp = await fetch('/api/vouchers/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-
-        const data = await resp.json();
-
-        if(!resp.ok){
-            if(data.errors) showErrors(data.errors);
-            else showErrors([data.message || 'Validation error']);
+        if (!isValidDateInput(body.arrivalDate) || !isValidDateInput(body.evictionDate)) {
+            showErrors([invalidYearMsg]);
             return;
         }
 
-        window.location.href='/catalog';
+        try {
+            const resp = await fetch('/api/vouchers/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const data = await resp.json().catch(() => null);
+
+            if(!resp.ok){
+                if (data && typeof data === 'object') {
+                    if (Array.isArray(data.errors)) {
+                        showErrors(data.errors);
+                        return;
+                    }
+
+                    if (data.message) {
+                        showErrors([data.message]);
+                        return;
+                    }
+
+                    const validationMessages = Object.values(data).filter(value => typeof value === 'string');
+                    if (validationMessages.length > 0) {
+                        showErrors(validationMessages);
+                        return;
+                    }
+                }
+
+                showErrors([validationErrorMsg]);
+                return;
+            }
+
+            window.location.href='/catalog';
+        } catch (error) {
+            showErrors([unexpectedErrorMsg]);
+        }
     }
 </script>
 </body>

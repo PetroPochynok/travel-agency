@@ -25,6 +25,7 @@
         #message-box { background: white; padding: 30px 40px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); text-align: center; max-width: 400px; font-size: 1.1rem; }
         #message-box.success { border-left: 6px solid #27ae60; }
         #message-box.error { border-left: 6px solid #e74c3c; }
+        #message-box ul { padding-left: 20px; margin: 0; text-align: left; }
         #message-box button { margin-top: 15px; padding: 6px 14px; border: none; border-radius: 6px; background-color: #2980b9; color: white; font-weight: 600; cursor: pointer; }
         #message-box button:hover { background-color: #1c5980; }
     </style>
@@ -105,10 +106,17 @@
 <!-- localized validation messages -->
 <span id="invalidDatesText" th:text="#{myVoucherEdit.invalidDates}" hidden>Eviction date must be after arrival date</span>
 <span id="priceTooLowText" th:text="#{myVoucherEdit.priceTooLow}" hidden>Price must be at least 10$</span>
+<span id="saveFailedText" th:text="#{myVoucherEdit.saveFailed}" hidden>Failed to save voucher</span>
+<span id="saveSuccessText" th:text="#{myVoucherEdit.saveSuccess}" hidden>Voucher saved successfully!</span>
+<span id="unexpectedErrorText" th:text="#{common.unexpectedError}" hidden>Unexpected error occurred</span>
+<span id="invalidYearText" th:text="#{voucher.date.yearMax4}" hidden>Year must contain exactly 4 digits</span>
+<span id="titleRequiredText" th:text="#{voucher.title.notBlank}" hidden>Title cannot be empty</span>
+<span id="descriptionRequiredText" th:text="#{voucher.description.notBlank}" hidden>Description cannot be empty</span>
+<span id="arrivalNotPastText" th:text="#{voucher.arrivalDate.notPast}" hidden>Arrival date cannot be in the past</span>
 
 <div id="message-overlay">
     <div id="message-box">
-        <div id="message-text"></div>
+        <ul id="message-text"></ul>
         <button onclick="closeMessage()">OK</button>
     </div>
 </div>
@@ -122,12 +130,47 @@
 
         const invalidMsg = document.getElementById('invalidDatesText')?.innerText || 'Eviction date must be after arrival date';
         const priceTooLowMsg = document.getElementById('priceTooLowText')?.innerText || 'Price must be at least 10$';
+        const saveFailedMsg = document.getElementById('saveFailedText')?.innerText || 'Failed to save voucher';
+        const saveSuccessMsg = document.getElementById('saveSuccessText')?.innerText || 'Voucher saved successfully!';
+        const unexpectedErrorMsg = document.getElementById('unexpectedErrorText')?.innerText || 'Unexpected error occurred';
+        const invalidYearMsg = document.getElementById('invalidYearText')?.innerText || 'Year must contain exactly 4 digits';
+        const titleRequiredMsg = document.getElementById('titleRequiredText')?.innerText || 'Title cannot be empty';
+        const descriptionRequiredMsg = document.getElementById('descriptionRequiredText')?.innerText || 'Description cannot be empty';
+        const arrivalNotPastMsg = document.getElementById('arrivalNotPastText')?.innerText || 'Arrival date cannot be in the past';
 
+        const titleValue = document.getElementById('title').value?.trim();
+        const descriptionValue = document.getElementById('description').value?.trim();
+
+        if (!titleValue) {
+            showErrors([titleRequiredMsg]);
+            return;
+        }
+
+        if (!descriptionValue) {
+            showErrors([descriptionRequiredMsg]);
+            return;
+        }
 
         if (priceValue !== '') {
             const priceNum = parseFloat(priceValue);
             if (!isNaN(priceNum) && priceNum < 10) {
-                showMessage(priceTooLowMsg, 'error');
+                showErrors([priceTooLowMsg]);
+                return;
+            }
+        }
+
+        if (!isValidDateInput(arrivalValue) || !isValidDateInput(evictionValue)) {
+            showErrors([invalidYearMsg]);
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (arrivalValue) {
+            const arrival = new Date(arrivalValue);
+            if (arrival < today) {
+                showErrors([arrivalNotPastMsg]);
                 return;
             }
         }
@@ -137,7 +180,7 @@
             const eviction = new Date(evictionValue);
             // if eviction is before or equal to arrival -> invalid
             if (eviction <= arrival) {
-                showMessage(invalidMsg, 'error');
+                showErrors([invalidMsg]);
                 return;
             }
         }
@@ -145,8 +188,8 @@
 
 
         const data = {
-            title: document.getElementById('title').value,
-            description: document.getElementById('description').value,
+            title: titleValue,
+            description: descriptionValue,
             price: parseFloat(priceValue),
             tourType: document.getElementById('tourType').value,
             transferType: document.getElementById('transferType').value,
@@ -167,16 +210,35 @@
                 body: JSON.stringify(data)
             });
 
-            const res = await response.json();
+            const res = await response.json().catch(() => null);
             if(!response.ok) {
-                showMessage(res.message || 'Failed to save voucher', 'error');
+                if (res && typeof res === 'object') {
+                    if (res.message) {
+                        showErrors([res.message]);
+                        return;
+                    }
+
+                    const validationMessages = Object.values(res).filter(value => typeof value === 'string');
+                    if (validationMessages.length > 0) {
+                        showErrors(validationMessages);
+                        return;
+                    }
+                }
+
+                showErrors([saveFailedMsg]);
                 return;
             }
-            showMessage('Voucher saved successfully!', 'success');
+            showMessage(saveSuccessMsg, 'success');
             setTimeout(()=>window.location.href='/catalog',1000);
         } catch(err) {
-            showMessage(err.message, 'error');
+            showErrors([unexpectedErrorMsg]);
         }
+    }
+
+
+    function isValidDateInput(value) {
+        if (!value) return true;
+        return /^\d{4}-\d{2}-\d{2}$/.test(value);
     }
 
     function goBackCatalog() {
@@ -187,7 +249,25 @@
         const overlay=document.getElementById('message-overlay');
         const box=document.getElementById('message-box');
         box.className=type;
-        document.getElementById('message-text').innerText=msg;
+        const list = document.getElementById('message-text');
+        list.innerHTML = '';
+        const li = document.createElement('li');
+        li.innerText = msg;
+        list.appendChild(li);
+        overlay.style.display='flex';
+    }
+
+    function showErrors(errors){
+        const overlay=document.getElementById('message-overlay');
+        const box=document.getElementById('message-box');
+        box.className='error';
+        const list = document.getElementById('message-text');
+        list.innerHTML = '';
+        errors.forEach(msg => {
+            const li = document.createElement('li');
+            li.innerText = msg;
+            list.appendChild(li);
+        });
         overlay.style.display='flex';
     }
 
